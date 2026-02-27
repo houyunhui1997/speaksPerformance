@@ -1,14 +1,12 @@
 <script setup>
-import bgImage from '@/assets/placeholders/app-bg.svg'
+import bgImage from '@/assets/homepage/background.png'
 import topLogoImage from '@/assets/placeholders/app-logo.svg'
 import titleImage from '@/assets/homepage/title.png'
-import enterButtonImage from '@/assets/placeholders/app-enter.svg'
+import enterButtonImage from '@/assets/homepage/button.png'
 </script>
 
 <template>
-  <main class="landing-page">
-    <img class="landing-page__bg" :src="bgImage" alt="Background placeholder" />
-
+  <main class="landing-page" :style="{ backgroundImage: `url(${bgImage})` }">
     <img class="landing-page__logo" :src="topLogoImage" alt="Top-left logo placeholder" />
     <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
 
@@ -21,20 +19,15 @@ import enterButtonImage from '@/assets/placeholders/app-enter.svg'
 <style scoped>
 .landing-page {
   position: relative;
-  width: 100%;
-  max-width: 640px;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
   height: 100dvh;
-  margin: 0 auto;
   overflow: hidden;
   background: #05145f;
-}
-
-.landing-page__bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
 }
 
 .landing-page__logo {
