@@ -5,13 +5,12 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'landing',
-      component: () => import('@/pages/index/AppLandingPlaceholder.vue'),
+      name: 'home',
+      component: () => import('@/pages/index/index.vue'),
     },
     {
       path: '/index',
-      name: 'index',
-      component: () => import('@/pages/index/index.vue'),
+      redirect: '/',
     },
     {
       path: '/footprint',
