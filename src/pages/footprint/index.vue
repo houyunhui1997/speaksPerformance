@@ -1,6 +1,6 @@
 <template>
   <div class="footprint-page">
-    <div ref="stageEl" class="footprint-stage">
+    <div ref="stageEl" class="footprint-stage" @click="handleStageClick">
       <canvas ref="canvasEl" class="footprint-canvas"></canvas>
       <img class="footprint-text" :src="textImg" alt="" />
     </div>
@@ -10,6 +10,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { getCities } from '@/api/footprint'
 import arrowImage from '@/assets/footprint/arrow.png'
@@ -21,6 +22,9 @@ import Tabbar from '@/compontents/tabbar.vue'
 
 const stageEl = ref(null)
 const canvasEl = ref(null)
+const router = useRouter()
+
+let clickableItems = []
 
 const bgMeta = ref({ width: 1000, height: 2000 })
 
@@ -440,6 +444,7 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   }
 
   renderItems.sort((a, b) => a.city.at - b.city.at)
+  clickableItems = renderItems
 
   for (const item of renderItems) {
     const { city, cx, cy, boxW, boxH, scaleUp, iconLeft, iconCenterX, iconW, iconH, textX } = item
@@ -548,6 +553,36 @@ onBeforeUnmount(() => {
   if (rafId) cancelAnimationFrame(rafId)
   if (resizeObserver.value) resizeObserver.value.disconnect()
 })
+
+const handleStageClick = (e) => {
+  if (!canvasEl.value) return
+  const rect = canvasEl.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  // Iterate in reverse order to check top-most items first
+  for (let i = clickableItems.length - 1; i >= 0; i--) {
+    const item = clickableItems[i]
+    const { cx, cy, boxW, boxH, city } = item
+    
+    // cx, cy are the center coordinates
+    const left = cx - boxW / 2
+    const right = cx + boxW / 2
+    const top = cy - boxH / 2
+    const bottom = cy + boxH / 2
+
+    if (x >= left && x <= right && y >= top && y <= bottom) {
+      router.push({
+        name: 'topicList',
+        query: {
+          cityId: city.id,
+          cityName: city.name
+        }
+      })
+      return
+    }
+  }
+}
 </script>
 
 <style scoped>

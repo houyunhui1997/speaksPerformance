@@ -22,6 +22,7 @@ let autoScrollPos = 0
 
 const activeYear = computed(() => String(route.query.year || '2025'))
 const displayList = computed(() => topicListByYear[activeYear.value] || topicListByYear['2025'])
+const cityName = computed(() => route.query.cityName)
 const scrollList = computed(() => {
   const origin = displayList.value
   if (origin.length === 0) return []
@@ -103,6 +104,7 @@ onUnmounted(() => {
 <template>
   <div class="page">
     <main class="topic-list" :style="{ backgroundImage: `url(${bgImage})` }">
+      <div v-if="cityName" class="city-header">当前城市：{{ cityName }}</div>
       <section
         ref="listWrapperRef"
         class="list-wrapper"
@@ -268,5 +270,18 @@ onUnmounted(() => {
   width: clamp(78px, 21vw, 140px);
   z-index: 13;
   pointer-events: none;
+}
+
+.city-header {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  z-index: 20;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 </style>
