@@ -1,0 +1,27 @@
+export const getCities = () => {
+  return [
+    { id: 'city-26', name: '攀枝花市', at: 0.04, offsetX: -0.25, offsetY: -0.08 },
+    { id: 'city-84', name: '成都市', at: 0.08, offsetX: -0.1, offsetY: -0.12 },
+    { id: 'city-38', name: '自贡市', at: 0.10, offsetX: 0.22, offsetY: -0.08 },
+    { id: 'city-40', name: '泸州市', at: 0.14, offsetX: 0.25, offsetY: -0.08 },
+    { id: 'city-28', name: '德阳市', at: 0.16, offsetX: -0.22, offsetY: -0.08 },
+    { id: 'city-43', name: '绵阳市', at: 0.20, offsetX: -0.22, offsetY: -0.08 },
+    { id: 'city-24', name: '乐山市', at: 0.22, offsetX: 0.22, offsetY: -0.08 },
+    { id: 'city-27-gy', name: '广元市', at: 0.24, offsetX: -0.25, offsetY: -0.08 },
+    { id: 'city-18-nj', name: '内江市', at: 0.28, offsetX: -0.2, offsetY: -0.05 },
+    { id: 'city-26-ms', name: '眉山市', at: 0.30, offsetX: 0.2, offsetY: -0.08 },
+    { id: 'city-33', name: '宜宾市', at: 0.34, offsetX: -0.2, offsetY: -0.08 },
+    { id: 'city-14', name: '遂宁市', at: 0.38, offsetX: 0.2, offsetY: -0.08 },
+    { id: 'city-31', name: '南充市', at: 0.42, offsetX: -0.2, offsetY: -0.08 },
+    { id: 'city-18-ga', name: '广安市', at: 0.46, offsetX: 0.2, offsetY: -0.08 },
+    { id: 'city-63', name: '达州市', at: 0.50, offsetX: -0.2, offsetY: -0.08 },
+    { id: 'city-23', name: '资阳市', at: 0.54, offsetX: 0.2, offsetY: -0.08 },
+    { id: 'city-29', name: '巴中市', at: 0.58, offsetX: -0.2, offsetY: -0.08 },
+    { id: 'city-50', name: '雅安市', at: 0.62, offsetX: 0.2, offsetY: -0.08 },
+    { id: 'city-45', name: '阿坝藏族羌族自治州', at: 0.70, offsetX: -0.15, offsetY: -0.08 },
+    { id: 'city-40-gz', name: '甘孜藏族自治州', at: 0.78, offsetX: -0.15, offsetY: -0.08 },
+    { id: 'city-27-ls', name: '凉山彝族自治州', at: 0.86, offsetX: 0.15, offsetY: -0.08 },
+    
+  ]
+  
+}

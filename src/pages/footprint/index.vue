@@ -11,6 +11,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
+import { getCities } from '@/api/footprint'
 import arrowImage from '@/assets/footprint/arrow.png'
 import bgImage from '@/assets/footprint/bg.png'
 import textImg from '@/assets/footprint/text1.png'
@@ -28,10 +29,11 @@ const riverPathPointMode = 'ratio'
 const riverStart = { x: 0.79, y: 0.93 }
 
 const riverSegments = [
-  { x: -0.2, y: -0.1, heading: -100, moveLen: 0.68 },
-  { x: 0.1, y: -0.31, heading: -90, moveLen: 0.26 },
-  { x: -0.01, y: -0.57, heading: -130, moveLen: 0.42 },
-  { x: 0.0, y: -1.0, moveLen: 0.22 },
+  { x: -0.18, y: -0.1, heading: -60, moveLen: 0.68 },
+  { x: 0.7, y: -0.41, heading: -90, moveLen: 0.3 },
+  { x: -0.1, y: -0.3, heading: -40, moveLen: 0.09 },
+  { x: 0.6, y: -0.2,heading: -90, moveLen: 0.15 },
+  { x: 0.2, y: -0.4,heading: -90, moveLen: 0.32 },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
@@ -153,26 +155,7 @@ const arrowAngleOffset = 140
 const durationMs = 15000
 const progress = ref(0)
 
-const cities = [
-  { id: 'city-1', name: '甘孜藏族自治州', at: 0.08, offsetX: -0.14, offsetY: -0.06 },
-  { id: 'city-2', name: '阿坝藏族羌族自治州', at: 0.14, offsetX: -0.14, offsetY: -0.02 },
-  { id: 'city-3', name: '巴中市', at: 0.2, offsetX: -0.16, offsetY: 0.02 },
-  { id: 'city-4', name: '达州市', at: 0.24, offsetX: -0.16, offsetY: 0.05 },
-  { id: 'city-5', name: '广安市', at: 0.28, offsetX: 0.14, offsetY: 0.02 },
-  { id: 'city-6', name: '资阳市', at: 0.32, offsetX: 0.16, offsetY: -0.02 },
-  { id: 'city-7', name: '眉山市', at: 0.36, offsetX: 0.14, offsetY: -0.02 },
-  { id: 'city-8', name: '雅安市', at: 0.4, offsetX: 0.14, offsetY: 0.02 },
-  { id: 'city-9', name: '宜宾市', at: 0.46, offsetX: -0.16, offsetY: 0.03 },
-  { id: 'city-10', name: '泸州市', at: 0.5, offsetX: 0.16, offsetY: 0.03 },
-  { id: 'city-11', name: '自贡市', at: 0.54, offsetX: 0.16, offsetY: 0.02 },
-  { id: 'city-12', name: '内江市', at: 0.58, offsetX: -0.16, offsetY: -0.01 },
-  { id: 'city-13', name: '遂宁市', at: 0.62, offsetX: 0.16, offsetY: -0.03 },
-  { id: 'city-14', name: '南充市', at: 0.66, offsetX: -0.18, offsetY: -0.02 },
-  { id: 'city-15', name: '广元市', at: 0.7, offsetX: -0.16, offsetY: 0.0 },
-  { id: 'city-16', name: '德阳市', at: 0.74, offsetX: 0.16, offsetY: -0.02 },
-  { id: 'city-17', name: '成都市', at: 0.8, offsetX: -0.04, offsetY: 0.08 },
-  { id: 'city-18', name: '凉山彝族自治州', at: 0.88, offsetX: 0.12, offsetY: 0.06 },
-]
+const cities = getCities()
 
 const revealedCityIds = new Set()
 let revealCursor = 0
