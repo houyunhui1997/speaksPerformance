@@ -1,10 +1,11 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import bgImage from '@/assets/homepage/background.png'
-import topLogoImage from '@/assets/placeholders/app-logo.svg'
 import titleImage from '@/assets/homepage/title.png'
 import enterButtonImage from '@/assets/homepage/button.png'
-
+import logo_01 from '@/assets/homepage/logo1.png'
+import logo_02 from '@/assets/homepage/logo2.png'
+import logo_03 from '@/assets/homepage/logo3.png'
 const router = useRouter()
 const handleEnter = () => {
   router.push('/footprint')
@@ -13,7 +14,11 @@ const handleEnter = () => {
 
 <template>
   <main class="landing-page" :style="{ backgroundImage: `url(${bgImage})` }">
-    <img class="landing-page__logo" :src="topLogoImage" alt="Top-left logo placeholder" />
+    <div class="landing-page__logo">
+      <img class="landing-page__logo_01" :src="logo_01" alt="Top-left logo" />
+      <img class="landing-page__logo_02" :src="logo_02" alt="Top-left logo" />
+      <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
+    </div>
     <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
 
     <button class="landing-page__enter" type="button" @click="handleEnter">
@@ -40,8 +45,24 @@ const handleEnter = () => {
   position: absolute;
   top: 3%;
   left: 3%;
-  width: 40%;
-  max-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.2vw, 12px);
+}
+
+.landing-page__logo_01 {
+  width: clamp(96px, 30vw, 138px);
+  height: auto;
+}
+
+.landing-page__logo_02 {
+  width: clamp(34px, 10vw, 52px);
+  height: auto;
+}
+
+.landing-page__logo_03 {
+  width: clamp(40px, 14vw, 58px);
+  height: auto;
 }
 
 .landing-page__title {
