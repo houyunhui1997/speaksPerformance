@@ -1,8 +1,14 @@
 <script setup>
+import { useRouter } from 'vue-router'
 import bgImage from '@/assets/homepage/background.png'
 import topLogoImage from '@/assets/placeholders/app-logo.svg'
 import titleImage from '@/assets/homepage/title.png'
 import enterButtonImage from '@/assets/homepage/button.png'
+
+const router = useRouter()
+const handleEnter = () => {
+  router.push('/index')
+}
 </script>
 
 <template>
@@ -10,7 +16,7 @@ import enterButtonImage from '@/assets/homepage/button.png'
     <img class="landing-page__logo" :src="topLogoImage" alt="Top-left logo placeholder" />
     <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
 
-    <button class="landing-page__enter" type="button">
+    <button class="landing-page__enter" type="button" @click="handleEnter">
       <img :src="enterButtonImage" alt="Enter button placeholder" />
     </button>
   </main>
