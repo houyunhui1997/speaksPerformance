@@ -25,7 +25,7 @@ const tabs = [
   },
 ]
 
-const isActive = (tab) => route.path === tab.to
+const isActive = (tab) => route.path === tab.to || route.path.startsWith(`${tab.to}/`)
 const handleTabClick = (tab) => {
   if (!isActive(tab)) router.push(tab.to)
 }

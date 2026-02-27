@@ -7,7 +7,7 @@ import topicCardXl from '@/assets/topic/topic-card-xl.png'
 import topicCardLg from '@/assets/topic/topic-card-lg.png'
 import topicCardSm from '@/assets/topic/topic-card-sm.png'
 import topicCardXs from '@/assets/topic/topic-card-xs.png'
-
+import { useRouter } from 'vue-router'
 // 1. 修改图片映射：新增 'wide' 类型，使用 XL 大图作为背景
 const frameBySize = {
   wide: topicCardXl, // <--- 新增：长条形专门用大图，防止拉伸模糊
@@ -40,7 +40,7 @@ const rawTopics = [
 const RADIUS = 160
 const FOCAL_LENGTH = 400
 const BASE_SPEED = 0.003
-
+const router = useRouter()
 const tags = ref([])
 let animationId = null
 let speedX = BASE_SPEED
@@ -124,7 +124,12 @@ const onTouchEnd = () => {
 }
 
 const getCardFrame = (item) => frameBySize[item.size] || topicCardMd
-
+const handleTopicClick = (item) => {
+  router.push({
+    name: 'topicDetail',
+    query: { topic: item.key },
+  })
+}
 onMounted(() => {
   initTags()
   animate()
@@ -158,6 +163,8 @@ onUnmounted(() => {
           class="topic-item"
           :class="`topic-item--${item.size}`"
           :style="item.style"
+          @click="handleTopicClick(item)"
+          @keydown.enter.prevent="handleTopicClick(item)"
         >
           <img class="topic-item__frame" :src="getCardFrame(item)" alt="" />
           <span class="topic-item__text">{{ item.label }}</span>
