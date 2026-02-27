@@ -174,6 +174,14 @@ const cities = [
   { id: 'city-18', name: '凉山彝族自治州', at: 0.88, offsetX: 0.12, offsetY: 0.06 },
 ]
 
+const revealedCityIds = new Set()
+let revealCursor = 0
+let lastLoopIndex = -1
+let currentLoopIndex = 0
+
+const revealPerFrame = 2
+const revealPerLoop = 2
+
 let rafId = 0
 let startAt = 0
 
@@ -252,7 +260,63 @@ const isReady = computed(
     !!segmentCache.value.total
 )
 
-const drawFrame = (t, lastAngle) => {
+const hashToUnit = (str) => {
+  let h = 2166136261
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return ((h >>> 0) % 10000) / 10000
+}
+
+const rectIntersects = (a, b) => !(a.r <= b.l || a.l >= b.r || a.b <= b.t || a.t >= b.b)
+
+const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH) => {
+  const pad = Math.max(6, boxH * 0.14)
+  const minX = boxW / 2 + pad
+  const maxX = canvasW - boxW / 2 - pad
+  const minY = boxH / 2 + pad
+  const maxY = canvasH - boxH / 2 - pad
+
+  const clampX = (v) => clamp(v, minX, maxX)
+  const clampY = (v) => clamp(v, minY, maxY)
+
+  const tryAt = (x, y) => {
+    const cx = clampX(x)
+    const cy = clampY(y)
+    const rect = {
+      l: cx - boxW / 2 - pad,
+      r: cx + boxW / 2 + pad,
+      t: cy - boxH / 2 - pad,
+      b: cy + boxH / 2 + pad,
+    }
+    for (const p of placed) {
+      if (rectIntersects(rect, p)) return null
+    }
+    return { x: cx, y: cy, rect }
+  }
+
+  const initial = tryAt(baseX, baseY)
+  if (initial) return initial
+
+  const step = Math.max(boxH * 0.75, 18)
+  const rot = seed * Math.PI * 2
+  const dir = seed > 0.5 ? 1 : -1
+
+  for (let ring = 1; ring <= 10; ring += 1) {
+    const radius = step * ring
+    const samples = clamp(6 + ring * 2, 8, 22)
+    for (let k = 0; k < samples; k += 1) {
+      const a = rot + dir * ((k * Math.PI * 2) / samples)
+      const attempt = tryAt(baseX + Math.cos(a) * radius, baseY + Math.sin(a) * radius)
+      if (attempt) return attempt
+    }
+  }
+
+  return { x: clampX(baseX), y: clampY(baseY), rect: { l: 0, r: 0, t: 0, b: 0 } }
+}
+
+const drawFrame = (t, loopIndex, lastAngle) => {
   if (!canvasEl.value || !isReady.value) return lastAngle
   const canvas = canvasEl.value
   const ctx = canvas.getContext('2d')
@@ -304,8 +368,22 @@ const drawFrame = (t, lastAngle) => {
   ctx.textBaseline = 'middle'
   ctx.font = `${fontSize}px sans-serif`
 
+  if (loopIndex !== lastLoopIndex) {
+    lastLoopIndex = loopIndex
+    let added = 0
+    while (added < revealPerLoop && revealedCityIds.size < cities.length) {
+      const city = cities[revealCursor % cities.length]
+      revealCursor += 1
+      if (city && !revealedCityIds.has(city.id)) {
+        revealedCityIds.add(city.id)
+        added += 1
+      }
+    }
+  }
+
   const candidates = []
   for (const city of cities) {
+    if (revealedCityIds.has(city.id)) continue
     const base = pointAtDistance(cache, length * city.at)
     const cx = (base.x + city.offsetX * imgW) * scale + dx
     const cy = (base.y + city.offsetY * imgH) * scale + dy
@@ -313,23 +391,35 @@ const drawFrame = (t, lastAngle) => {
     const k = clamp01(1 - distPx / nearThreshold)
     const score = k * k
     if (score <= 0.05) continue
-    candidates.push({ city, cx, cy, score })
+    candidates.push({ city, score })
   }
 
   candidates.sort((a, b) => b.score - a.score)
-  const visible = candidates.slice(0, 2)
+  let newlyRevealed = 0
+  for (const item of candidates) {
+    if (newlyRevealed >= revealPerFrame) break
+    if (!revealedCityIds.has(item.city.id)) {
+      revealedCityIds.add(item.city.id)
+      newlyRevealed += 1
+    }
+  }
 
-  for (const item of visible) {
-    const { city, cx, cy, score } = item
-    const alpha = 1
+  const didianAspect =
+    (didianImgEl.value?.naturalWidth || 1) / (didianImgEl.value?.naturalHeight || 1)
+  const placedRects = []
+  const renderItems = []
+
+  for (const city of cities) {
+    if (!revealedCityIds.has(city.id)) continue
+    const base = pointAtDistance(cache, length * city.at)
+    const baseX = (base.x + city.offsetX * imgW) * scale + dx
+    const baseY = (base.y + city.offsetY * imgH) * scale + dy
 
     const measured = ctx.measureText(city.name)
     const textWidth = Math.max(minWidth, measured.width)
     const boxH = fontSize * 2.6
     const scaleUp = 1
 
-    const didianAspect =
-      (didianImgEl.value?.naturalWidth || 1) / (didianImgEl.value?.naturalHeight || 1)
     const iconH = boxH * 0.58
     const iconW = iconH * didianAspect
     const iconPadRight = fontSize * 0.45
@@ -338,6 +428,39 @@ const drawFrame = (t, lastAngle) => {
     const iconLeft = -boxW / 2 + paddingX
     const iconCenterX = iconLeft + iconW / 2
     const textX = iconLeft + iconW + iconPadRight
+
+    const seed = hashToUnit(city.id || city.name)
+    const placed = placeLabel(
+      baseX,
+      baseY,
+      boxW * scaleUp,
+      boxH * scaleUp,
+      seed,
+      placedRects,
+      width,
+      height
+    )
+    placedRects.push(placed.rect)
+    renderItems.push({
+      city,
+      cx: placed.x,
+      cy: placed.y,
+      boxW,
+      boxH,
+      scaleUp,
+      iconLeft,
+      iconCenterX,
+      iconW,
+      iconH,
+      textX,
+    })
+  }
+
+  renderItems.sort((a, b) => a.city.at - b.city.at)
+
+  for (const item of renderItems) {
+    const { city, cx, cy, boxW, boxH, scaleUp, iconLeft, iconCenterX, iconW, iconH, textX } = item
+    const alpha = 1
 
     const phase = (performance.now() / 1000 + city.at * 3.1) % 1
     const ripple1 = phase
@@ -382,10 +505,12 @@ let lastAngle = 0
 
 const tick = (now) => {
   if (!startAt) startAt = now
-  const elapsed = (now - startAt) % durationMs
-  const t = elapsed / durationMs
+  const raw = (now - startAt) / durationMs
+  const loopIndex = Math.floor(raw)
+  const t = raw - loopIndex
+  currentLoopIndex = loopIndex
   progress.value = t
-  lastAngle = drawFrame(t, lastAngle)
+  lastAngle = drawFrame(t, loopIndex, lastAngle)
   rafId = requestAnimationFrame(tick)
 }
 
@@ -415,11 +540,12 @@ onMounted(() => {
       }
 
       setCanvasSize()
-      drawFrame(0, 0)
+      currentLoopIndex = 0
+      drawFrame(0, currentLoopIndex, 0)
 
       resizeObserver.value = new ResizeObserver(() => {
         setCanvasSize()
-        drawFrame(progress.value || 0, lastAngle)
+        drawFrame(progress.value || 0, currentLoopIndex, lastAngle)
       })
       resizeObserver.value.observe(stageEl.value)
 
