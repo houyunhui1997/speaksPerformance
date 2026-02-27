@@ -6,6 +6,7 @@ import enterButtonImage from '@/assets/homepage/button.png'
 import logo_01 from '@/assets/homepage/logo1.png'
 import logo_02 from '@/assets/homepage/logo2.png'
 import logo_03 from '@/assets/homepage/logo3.png'
+import year_2026 from '@/assets/homepage/2026.png'
 const router = useRouter()
 const handleEnter = () => {
   router.push('/footprint')
@@ -14,31 +15,42 @@ const handleEnter = () => {
 
 <template>
   <main class="landing-page" :style="{ backgroundImage: `url(${bgImage})` }">
-    <div class="landing-page__logo">
-      <img class="landing-page__logo_01" :src="logo_01" alt="Top-left logo" />
-      <img class="landing-page__logo_02" :src="logo_02" alt="Top-left logo" />
-      <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
-    </div>
-    <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
+    <section class="landing-page__stage">
+      <div class="landing-page__logo">
+        <img class="landing-page__logo_01" :src="logo_01" alt="Top-left logo" />
+        <img class="landing-page__logo_02" :src="logo_02" alt="Top-left logo" />
+        <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
+      </div>
+      <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
 
-    <button class="landing-page__enter" type="button" @click="handleEnter">
-      <img :src="enterButtonImage" alt="Enter button placeholder" />
-    </button>
+      <img class="landing-page__year2026" :src="year_2026" aria-label="2026 image" />
+
+      <button class="landing-page__enter" type="button" @click="handleEnter">
+        <img :src="enterButtonImage" alt="Enter button placeholder" />
+      </button>
+    </section>
   </main>
 </template>
 
 <style scoped>
 .landing-page {
-  position: relative;
   width: 100vw;
-  max-width: none;
   height: 100vh;
   height: 100dvh;
+  position: relative;
   overflow: hidden;
   background: #05145f;
+  display: flex;
+  justify-content: center;
   background-repeat: no-repeat;
   background-position: center top;
   background-size: cover;
+}
+
+.landing-page__stage {
+  position: relative;
+  width: min(100vw, calc(100dvh * 380 / 823));
+  height: 100%;
 }
 
 .landing-page__logo {
@@ -67,29 +79,107 @@ const handleEnter = () => {
 
 .landing-page__title {
   position: absolute;
-  top: 13%;
+  top: 12.5%;
   left: 50%;
   width: 78%;
-  max-width: 520px;
   transform: translateX(-50%);
 }
 
 .landing-page__enter {
   position: absolute;
   left: 50%;
-  bottom: 7%;
+  bottom: calc(6% + env(safe-area-inset-bottom));
   width: 44%;
-  min-width: 180px;
-  max-width: 300px;
   padding: 0;
   border: 0;
   background: transparent;
   transform: translateX(-50%);
+  /* 故障闪烁动画 */
+  animation: glitch-skew 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite both;
+}
+
+.landing-page__year2026 {
+  position: absolute;
+  left: 50%;
+  bottom: 27.5%;
+  width: 52%;
+  aspect-ratio: 2.5 / 1;
+  transform: translateX(-50%);
+  /* 动画设置：先执行入场(1s)，紧接着执行悬浮(3s无限循环) */
+  animation:
+    enter2026 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards,
+    floatGlow 4s ease-in-out infinite 1s; /* 延迟1s等待入场结束 */
+  opacity: 0; /* 初始隐藏，由动画控制显示 */
 }
 
 .landing-page__enter img {
   display: block;
   width: 100%;
   height: auto;
+}
+@media screen and (max-width: 390px) {
+  .landing-page__year2026 {
+    bottom: 22.2%;
+    width: 54%;
+  }
+}
+@keyframes glitch-skew {
+  0%,
+  100% {
+    transform: translateX(-50%) skew(0deg);
+    opacity: 1;
+  }
+  10% {
+    transform: translateX(-50%) skew(-2deg);
+    opacity: 0.9;
+  }
+  20% {
+    transform: translateX(-50%) skew(2deg);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(-50%) skew(0deg);
+    filter: brightness(1);
+  }
+  32% {
+    transform: translateX(-48%) skew(5deg); /* 瞬间错位 */
+    filter: brightness(2) hue-rotate(90deg); /* 瞬间变色变亮 */
+  }
+  34% {
+    transform: translateX(-50%) skew(0deg);
+    filter: brightness(1);
+  }
+  /* 后面大部分时间保持静止，制造随机感 */
+  40%,
+  90% {
+    transform: translateX(-50%);
+  }
+}
+/* 入场动画：从下往上 + 模糊变清晰 */
+@keyframes enter2026 {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(40px) scale(0.9);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* 持续动画：上下悬浮 + 投影呼吸 */
+@keyframes floatGlow {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+    filter: drop-shadow(0 0 0px rgba(138, 200, 255, 0));
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+    /* 如果图片是透明PNG，drop-shadow会产生很好的发光效果 */
+    filter: drop-shadow(0 0 15px rgba(100, 220, 255, 0.6));
+  }
 }
 </style>

@@ -7,7 +7,6 @@ export const topicSphereList = [
   { key: 'traffic', label: '交通', size: 'lg' },
   { key: 'livelihood', label: '民生', size: 'sm' },
   { key: 'finance', label: '财税金融', size: 'lg' },
-  // ↓↓↓ 修改这里：size 改为 wide，文字写全 ↓↓↓
   { key: 'chengyu', label: '成渝地区双城经济圈', size: 'wide' },
   { key: 'industry', label: '产业', size: 'sm' },
   { key: 'reform', label: '改革开放', size: 'lg' },

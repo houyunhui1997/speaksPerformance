@@ -89,6 +89,25 @@ const handleCardClick = () => {
   })
 }
 
+const normalizeAuthorName = (author) => {
+  const text = String(author || '').trim()
+  const tail = text.split(/\s+/).pop() || text
+  return tail.replace(/^[^A-Za-z0-9\u4e00-\u9fa5]+/, '')
+}
+
+const goAuthorDetail = (card) => {
+  const authorName = normalizeAuthorName(card?.author)
+  if (!authorName) return
+
+  router.push({
+    name: 'topicAuthor',
+    query: {
+      year: activeYear.value,
+      author: authorName,
+    },
+  })
+}
+
 const getWobbleStyle = () => {
   return {
     animationDelay: `-${Math.random() * 5}s`,
@@ -138,7 +157,14 @@ const getWobbleStyle = () => {
               <p class="detail-card__content">“{{ card.content }}”</p>
 
               <div class="detail-card__footer">
-                <span class="detail-card__author">{{ card.author }}</span>
+                <button
+                  type="button"
+                  class="detail-card__author-btn"
+                  @click.stop="goAuthorDetail(card)"
+                  @keydown.enter.stop.prevent="goAuthorDetail(card)"
+                >
+                  <span class="detail-card__author">{{ card.author }}</span>
+                </button>
               </div>
 
               <!-- Tag 绝对定位 -->
@@ -321,6 +347,13 @@ const getWobbleStyle = () => {
   color: #c5e9ff;
   opacity: 0.9;
   font-weight: normal;
+}
+
+.detail-card__author-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 /* --- Tag --- */
