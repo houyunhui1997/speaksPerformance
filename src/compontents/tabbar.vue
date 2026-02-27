@@ -15,6 +15,7 @@ const router = useRouter()
 
 const tabs = [
   { key: 'footprint', to: '/footprint', activeSrc: zujiActive, inactiveSrc: zujiInactive },
+  { key: 'topic', to: '/topic', activeSrc: huatiActive, inactiveSrc: huatiInactive },
   { key: 'hotspot', to: '/hotspot', activeSrc: redianActive, inactiveSrc: redianInactive },
   {
     key: 'publicOpinion',
@@ -22,7 +23,6 @@ const tabs = [
     activeSrc: minshengInactive,
     inactiveSrc: minshengInactive,
   },
-  { key: 'topic', to: '/topic', activeSrc: huatiActive, inactiveSrc: huatiInactive },
 ]
 
 const isActive = (tab) => route.path === tab.to
@@ -32,12 +32,13 @@ const handleTabClick = (tab) => {
 </script>
 
 <template>
-  <div class="tabbar" :style="{ backgroundImage: `url(${tabbarBg})` }">
+  <div class="tabbar">
     <button
       v-for="tab in tabs"
       :key="tab.key"
       class="tabbar__item"
       :class="{ 'tabbar__item--active': isActive(tab) }"
+      :style="{ backgroundImage: `url(${tabbarBg})` }"
       type="button"
       @click="handleTabClick(tab)"
     >
@@ -48,38 +49,44 @@ const handleTabClick = (tab) => {
 
 <style scoped>
 .tabbar {
-  position: relative;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 20px;
   width: 100%;
-  height: 86px;
-  padding: 0 18px;
+  height: 50px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .tabbar__item {
-  width: 24%;
-  height: 100%;
+  flex: 1;
   padding: 0;
   border: 0;
   background: transparent;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .tabbar__icon {
-  width: 76%;
-  max-width: 130px;
+  width: 55%;
+  max-width: 140px;
   height: auto;
   user-select: none;
   pointer-events: none;
+  transform: translateY(0) scale(1);
+  transform-origin: center bottom;
+  transition: transform 180ms ease;
 }
 
 .tabbar__item--active .tabbar__icon {
-  filter: drop-shadow(0 0 8px rgba(100, 210, 255, 0.45));
+  transform: translateY(-4px) scale(1.18);
 }
 </style>

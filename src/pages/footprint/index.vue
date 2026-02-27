@@ -1,6 +1,5 @@
 <template>
   <div class="footprint-page">
-    <Tabbar class="footprint-tabbar" />
     <div class="footprint-stage">
       <img class="footprint-bg" :src="bgImage" alt="" />
 
@@ -43,6 +42,7 @@
         </g>
       </svg>
     </div>
+    <Tabbar />
   </div>
 </template>
 
@@ -260,13 +260,6 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   z-index: 0;
-}
-
-.footprint-tabbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 5;
 }
 
 .footprint-bg {
