@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/topic-detail-bg.png'
@@ -14,32 +15,39 @@ import contentLeftBottom from '@/assets/topic/content-left-bottom.png'
 
 const yearTabs = ['2025', '2024', '2023']
 const activeYear = ref('2025')
+const router = useRouter()
 
 const detailByYear = {
   2025: [
     {
       id: '25-1',
-      content: '关于将四川成都-巴中-陕西安康铁路项目纳入《中长期铁路网规划》并开工建设的建议',
-      tag: '发展规划 / 交通',
-      author: '—— 高凯',
+      content: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
+      tag: '科技创新',
+      author: '—— 王麒',
     },
     {
       id: '25-2',
-      content: '关于优先保障硅能源产业用电需求支持生态环保落地的建议',
-      tag: '产业 / 生态',
-      author: '—— 刘汉元',
+      content: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
+      tag: '交通 / 航运',
+      author: '—— 王瑛',
     },
     {
       id: '25-3',
-      content: '关于建立引导大学生进入民营科技型中小企业就业激励机制的建议',
-      tag: '民生 / 就业',
-      author: '—— 刘汉元',
+      content: '关于支持四川建设成为全国氢能产业发展高地的建议',
+      tag: '产业 / 氢能',
+      author: '—— 欧阳梅',
     },
     {
       id: '25-4',
-      content: '关于出台《川陕革命老区综合交通基础设施振兴发展规划》的建议',
-      tag: '发展规划 / 交通',
-      author: '—— 高凯',
+      content: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
+      tag: '科技创新',
+      author: '—— 王璞',
+    },
+    {
+      id: '25-5',
+      content: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
+      tag: '交通 / 航运',
+      author: '—— 欧阳梅',
     },
   ],
   2024: [
@@ -149,6 +157,13 @@ const setYear = (year) => {
   activeYear.value = year
 }
 
+const handleCardClick = () => {
+  router.push({
+    name: 'topicList',
+    query: { year: activeYear.value },
+  })
+}
+
 const getWobbleStyle = () => {
   return {
     animationDelay: `-${Math.random() * 5}s`,
@@ -190,6 +205,10 @@ const getWobbleStyle = () => {
                 backgroundImage: `url(${card.bgImg})`,
                 ...card.cardStyle,
               }"
+              role="button"
+              tabindex="0"
+              @click="handleCardClick"
+              @keydown.enter.prevent="handleCardClick"
             >
               <p class="detail-card__content">“{{ card.content }}”</p>
 

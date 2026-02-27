@@ -37,6 +37,11 @@ const router = createRouter({
       name: 'topicDetail',
       component: () => import('@/pages/topic/detail.vue'),
     },
+    {
+      path: '/topic/list',
+      name: 'topicList',
+      component: () => import('@/pages/topic/list.vue'),
+    },
   ],
 })
 

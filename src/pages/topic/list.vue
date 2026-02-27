@@ -1,0 +1,312 @@
+<script setup>
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+
+import Tabbar from '@/compontents/tabbar.vue'
+import bgImage from '@/assets/topic/list-bg.png'
+import dialogRight from '@/assets/topic/dialog-right.png'
+import dialogLeft from '@/assets/topic/dialog-left.png'
+
+const route = useRoute()
+const listWrapperRef = ref(null)
+const isAutoScrollPaused = ref(false)
+
+const AUTO_SCROLL_SPEED = 0.1
+const AUTO_SCROLL_RESUME_DELAY = 2500
+
+let rafId = 0
+let resumeTimer = 0
+let autoScrollPos = 0
+
+const listByYear = {
+  2025: [
+    {
+      id: '25-1',
+      title: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
+      date: '2025年3月12日',
+      source: '人民日报',
+      author: '王麒',
+    },
+    {
+      id: '25-2',
+      title: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
+      date: '2025年3月12日',
+      source: '人民日报',
+      author: '王瑛',
+    },
+    {
+      id: '25-3',
+      title: '关于支持四川建设成为全国氢能产业发展高地的建议',
+      date: '2025年3月12日',
+      source: '人民日报',
+      author: '欧阳梅',
+    },
+    {
+      id: '25-4',
+      title: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
+      date: '2025年3月12日',
+      source: '人民日报',
+      author: '王璞',
+    },
+    {
+      id: '25-5',
+      title: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
+      date: '2025年3月12日',
+      source: '人民日报',
+      author: '欧阳梅',
+    },
+  ],
+  2024: [
+    {
+      id: '24-1',
+      title: '关于优化川渝两地产业链协同机制提升科技成果转化效率的建议',
+      date: '2024年3月11日',
+      source: '人民日报',
+      author: '代表团',
+    },
+    {
+      id: '24-2',
+      title: '关于加快县域医疗服务能力提升推动基层医疗资源均衡配置的建议',
+      date: '2024年3月11日',
+      source: '人民日报',
+      author: '代表团',
+    },
+    {
+      id: '24-3',
+      title: '关于完善绿色低碳产业扶持政策推动重点园区节能改造的建议',
+      date: '2024年3月11日',
+      source: '人民日报',
+      author: '代表团',
+    },
+  ],
+  2023: [
+    {
+      id: '23-1',
+      title: '关于推进数字政府建设提升公共服务一网通办质量的建议',
+      date: '2023年3月10日',
+      source: '人民日报',
+      author: '代表团',
+    },
+    {
+      id: '23-2',
+      title: '关于加强重要农产品仓储物流体系建设保障粮食安全的建议',
+      date: '2023年3月10日',
+      source: '人民日报',
+      author: '代表团',
+    },
+    {
+      id: '23-3',
+      title: '关于打造区域文旅品牌推进文化消费场景创新的建议',
+      date: '2023年3月10日',
+      source: '人民日报',
+      author: '代表团',
+    },
+  ],
+}
+
+const activeYear = computed(() => String(route.query.year || '2025'))
+const displayList = computed(() => listByYear[activeYear.value] || listByYear['2025'])
+const scrollList = computed(() => {
+  const origin = displayList.value
+  if (origin.length === 0) return []
+
+  let list = [...origin]
+  while (list.length < 8) {
+    list = [...list, ...origin]
+  }
+
+  return [...list, ...list].map((item, index) => ({
+    ...item,
+    uniqueKey: `${item.id}-${index}`,
+  }))
+})
+const getDialogBg = (index) => (index % 2 === 0 ? dialogRight : dialogLeft)
+
+const pauseAutoScroll = () => {
+  const el = listWrapperRef.value
+  if (el) autoScrollPos = el.scrollTop
+
+  isAutoScrollPaused.value = true
+  if (resumeTimer) clearTimeout(resumeTimer)
+  resumeTimer = setTimeout(() => {
+    isAutoScrollPaused.value = false
+  }, AUTO_SCROLL_RESUME_DELAY)
+}
+
+const syncScrollPos = () => {
+  const el = listWrapperRef.value
+  if (el) autoScrollPos = el.scrollTop
+}
+
+const autoScrollStep = () => {
+  const el = listWrapperRef.value
+  if (el && !isAutoScrollPaused.value) {
+    const maxScrollTop = el.scrollHeight - el.clientHeight
+    if (maxScrollTop > 0) {
+      autoScrollPos += AUTO_SCROLL_SPEED
+      if (autoScrollPos >= maxScrollTop - 1) autoScrollPos = 0
+      el.scrollTop = autoScrollPos
+    }
+  }
+  rafId = requestAnimationFrame(autoScrollStep)
+}
+
+onMounted(() => {
+  const el = listWrapperRef.value
+  if (el) autoScrollPos = el.scrollTop
+  rafId = requestAnimationFrame(autoScrollStep)
+})
+
+onUnmounted(() => {
+  if (rafId) cancelAnimationFrame(rafId)
+  if (resumeTimer) clearTimeout(resumeTimer)
+})
+</script>
+
+<template>
+  <div class="page">
+    <main class="topic-list" :style="{ backgroundImage: `url(${bgImage})` }">
+      <section
+        ref="listWrapperRef"
+        class="list-wrapper"
+        @scroll.passive="syncScrollPos"
+        @wheel.passive="pauseAutoScroll"
+        @touchstart.passive="pauseAutoScroll"
+        @touchmove.passive="pauseAutoScroll"
+      >
+        <article
+          v-for="(card, index) in scrollList"
+          :key="card.uniqueKey"
+          class="list-card"
+          :class="index % 2 === 0 ? 'list-card--right' : 'list-card--left'"
+          :style="{ backgroundImage: `url(${getDialogBg(index)})` }"
+        >
+          <h3 class="list-card__title">{{ card.title }}</h3>
+          <div class="list-card__meta">
+            <span class="list-card__source">{{ card.date }} {{ card.source }}</span>
+            <span class="list-card__author">{{ card.author }}</span>
+          </div>
+        </article>
+      </section>
+    </main>
+    <Tabbar />
+  </div>
+</template>
+
+<style scoped>
+.page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #010d3d;
+  color: #fff;
+}
+
+.topic-list {
+  position: relative;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+.list-wrapper {
+  position: absolute;
+  top: 62px;
+  left: 0;
+  right: 0;
+  bottom: calc(95px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  padding: 0 12px 22px;
+  box-sizing: border-box;
+  z-index: 10;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.list-wrapper::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.list-card {
+  width: min(92%, 500px);
+  margin: 0 auto 14px;
+  min-height: 146px;
+  padding: 24px 22px 28px;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.list-card--right {
+  padding-right: 18px;
+}
+
+.list-card--left {
+  padding-left: 18px;
+}
+
+.list-card__title {
+  margin: 0;
+  color: #f0f8ff;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.list-card__meta {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.list-card__source {
+  font-size: 12px;
+  color: rgba(124, 232, 255, 0.78);
+  white-space: nowrap;
+}
+
+.list-card__author {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  line-height: 1;
+  color: #57ecff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.list-card__author::before {
+  content: '';
+  width: 78px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(95, 236, 255, 0.18), #73f2ff);
+  box-shadow: 0 0 8px rgba(115, 242, 255, 0.38);
+}
+
+.topic-list__city {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.topic-list__city-right {
+  position: absolute;
+  right: 0;
+  bottom: calc(120px + env(safe-area-inset-bottom));
+  width: clamp(78px, 21vw, 140px);
+  z-index: 13;
+  pointer-events: none;
+}
+</style>
