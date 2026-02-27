@@ -49,15 +49,15 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import arrowImage from '@/assets/hotspot/arrow.png'
-import bgImage from '@/assets/hotspot/bg.png'
+import arrowImage from '@/assets/footprint/arrow.png'
+import bgImage from '@/assets/footprint/bg.png'
 import Tabbar from '@/compontents/tabbar.vue'
 
 const bgMeta = ref({ width: 1000, height: 2000 })
 
 const riverPathPoints = [
-  { x: 0.21, y: 0.89 },
-  { x: 0.3, y: 0.85 },
+  { x: 0.61, y: 0.89 },
+  { x: 0.62, y: 0.85 },
   { x: 0.38, y: 0.8 },
   { x: 0.46, y: 0.76 },
   { x: 0.56, y: 0.72 },
