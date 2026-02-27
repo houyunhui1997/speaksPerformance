@@ -1,46 +1,8 @@
 <template>
   <div class="footprint-page">
-    <div class="footprint-stage">
-      <img class="footprint-bg" :src="bgImage" alt="" />
-
-      <svg
-        class="footprint-overlay"
-        :viewBox="`0 0 ${bgMeta.width} ${bgMeta.height}`"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <path ref="riverPathEl" class="footprint-path" :d="riverPathD" />
-        <g class="footprint-arrow" :transform="arrowTransform">
-          <image :href="arrowImage" :width="arrowSize" :height="arrowSize" />
-        </g>
-
-        <g
-          v-for="city in renderedCities"
-          :key="city.id"
-          :transform="`translate(${city.x} ${city.y})`"
-        >
-          <g class="city-label-inner" :class="{ 'city-label-inner--visible': isCityVisible(city) }">
-            <rect
-              class="city-label-rect"
-              :x="-city.boxWidth / 2"
-              :y="-city.boxHeight / 2"
-              :width="city.boxWidth"
-              :height="city.boxHeight"
-              :rx="city.boxRadius"
-              :ry="city.boxRadius"
-            />
-            <text
-              class="city-label-text"
-              x="0"
-              y="0"
-              text-anchor="middle"
-              dominant-baseline="middle"
-              :style="{ fontSize: `${city.fontSize}px` }"
-            >
-              {{ city.name }}
-            </text>
-          </g>
-        </g>
-      </svg>
+    <div ref="stageEl" class="footprint-stage">
+      <canvas ref="canvasEl" class="footprint-canvas"></canvas>
+      <img class="footprint-text" :src="textImg" alt="" />
     </div>
     <Tabbar />
   </div>
@@ -51,165 +13,389 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import arrowImage from '@/assets/footprint/arrow.png'
 import bgImage from '@/assets/footprint/bg.png'
+import textImg from '@/assets/footprint/text1.png'
+import juxing from '@/assets/footprint/juxing.png'
+import didian from '@/assets/footprint/didian.png'
 import Tabbar from '@/compontents/tabbar.vue'
+
+const stageEl = ref(null)
+const canvasEl = ref(null)
 
 const bgMeta = ref({ width: 1000, height: 2000 })
 
-const riverPathPoints = [
-  { x: 0.61, y: 0.89 },
-  { x: 0.62, y: 0.85 },
-  { x: 0.38, y: 0.8 },
-  { x: 0.46, y: 0.76 },
-  { x: 0.56, y: 0.72 },
-  { x: 0.66, y: 0.67 },
-  { x: 0.73, y: 0.62 },
-  { x: 0.68, y: 0.56 },
-  { x: 0.6, y: 0.52 },
-  { x: 0.55, y: 0.47 },
-  { x: 0.62, y: 0.42 },
-  { x: 0.7, y: 0.36 },
-  { x: 0.66, y: 0.3 },
-  { x: 0.58, y: 0.25 },
-  { x: 0.54, y: 0.19 },
-  { x: 0.52, y: 0.12 },
+const riverPathPointMode = 'ratio'
+
+const riverStart = { x: 0.79, y: 0.93 }
+
+const riverSegments = [
+  { x: -0.2, y: -0.1, heading: -100, moveLen: 0.68 },
+  { x: 0.1, y: -0.31, heading: -90, moveLen: 0.26 },
+  { x: -0.01, y: -0.57, heading: -130, moveLen: 0.42 },
+  { x: 0.0, y: -1.0, moveLen: 0.22 },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+const clamp01 = (v) => Math.min(1, Math.max(0, v))
 
-const catmullRomToBezierD = (width, height, pts) => {
-  if (!pts || pts.length < 2) return ''
+const toImagePoints = (width, height, pts) => {
+  if (riverPathPointMode === 'px') return pts.map((pt) => ({ ...pt }))
+  return pts.map((pt) => ({ ...pt, x: pt.x * width, y: pt.y * height }))
+}
 
-  const p = pts.map((pt) => ({ x: pt.x * width, y: pt.y * height }))
-  let d = `M ${p[0].x} ${p[0].y}`
+const toMoveLenPx = (raw, width, height) => {
+  if (typeof raw !== 'number') return null
+  if (riverPathPointMode === 'px') return raw
+  return raw * Math.min(width, height)
+}
 
-  for (let i = 0; i < p.length - 1; i += 1) {
-    const p0 = p[i - 1] ?? p[i]
-    const p1 = p[i]
-    const p2 = p[i + 1]
-    const p3 = p[i + 2] ?? p2
+const toDirVectorPx = (seg, width, height) => {
+  if (typeof seg?.x !== 'number' || typeof seg?.y !== 'number') return null
+  if (riverPathPointMode === 'px') return { x: seg.x, y: seg.y }
+  return { x: seg.x * width, y: seg.y * height }
+}
 
-    const c1x = p1.x + (p2.x - p0.x) / 6
-    const c1y = p1.y + (p2.y - p0.y) / 6
-    const c2x = p2.x - (p3.x - p1.x) / 6
-    const c2y = p2.y - (p3.y - p1.y) / 6
+const buildAnchorsFromSegments = (start, segments) => {
+  const width = bgMeta.value.width
+  const height = bgMeta.value.height
 
-    d += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${p2.y}`
+  const startPx =
+    riverPathPointMode === 'px'
+      ? { x: start.x, y: start.y }
+      : { x: start.x * width, y: start.y * height }
+
+  const pts = [{ ...startPx }]
+  let cur = startPx
+
+  for (const seg of segments || []) {
+    const targetLen = toMoveLenPx(seg?.moveLen, width, height)
+    if (!targetLen || targetLen <= 0) continue
+
+    const v = toDirVectorPx(seg, width, height)
+    if (!v) continue
+
+    const len = Math.hypot(v.x, v.y)
+    if (len <= 0.001) continue
+
+    const ux = v.x / len
+    const uy = v.y / len
+    const next = { x: cur.x + ux * targetLen, y: cur.y + uy * targetLen }
+
+    const heading =
+      typeof seg.heading === 'number'
+        ? seg.heading
+        : typeof seg.angle === 'number'
+          ? seg.angle
+          : null
+    pts.push(heading === null ? next : { ...next, heading })
+
+    cur = next
   }
 
-  return d
+  return pts
 }
 
-const riverPathD = computed(() =>
-  catmullRomToBezierD(bgMeta.value.width, bgMeta.value.height, riverPathPoints)
+const buildPolylinePoints = (anchors) => {
+  if (!anchors || anchors.length < 2) return anchors || []
+  const pts = []
+  for (let i = 0; i < anchors.length - 1; i += 1) {
+    const a = anchors[i]
+    const b = anchors[i + 1]
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    const dist = Math.hypot(dx, dy)
+    const steps = clamp(Math.ceil(dist / 14), 12, 220)
+    const startS = i === 0 ? 0 : 1
+    const heading =
+      typeof a.heading === 'number' ? a.heading : typeof a.angle === 'number' ? a.angle : null
+    for (let s = startS; s < steps; s += 1) {
+      const t = s / steps
+      const p = { x: a.x + dx * t, y: a.y + dy * t }
+      pts.push(heading === null ? p : { ...p, heading })
+    }
+  }
+  const last = anchors[anchors.length - 1]
+  pts.push({ ...last })
+  return pts
+}
+
+const downsamplePoints = (pts, stride) => {
+  if (!pts || pts.length <= 2) return pts
+  const safeStride = Math.max(1, Math.floor(stride))
+  const result = []
+  for (let i = 0; i < pts.length; i += safeStride) result.push(pts[i])
+  const last = pts[pts.length - 1]
+  if (result[result.length - 1] !== last) result.push(last)
+  return result
+}
+
+const normalizeT = (v) => {
+  const m = v % 1
+  return m < 0 ? m + 1 : m
+}
+
+const lerpAngle = (from, to, alpha) => {
+  const delta = ((((to - from) % 360) + 540) % 360) - 180
+  return from + delta * alpha
+}
+
+const smoothstep = (edge0, edge1, x) => {
+  const t = clamp01((x - edge0) / (edge1 - edge0))
+  return t * t * (3 - 2 * t)
+}
+
+const turnStride = 1
+const riverPathPoints = computed(() =>
+  buildPolylinePoints(buildAnchorsFromSegments(riverStart, riverSegments))
 )
+const riverImagePoints = computed(() => downsamplePoints(riverPathPoints.value, turnStride))
 
-const arrowSize = computed(() => clamp(bgMeta.value.width * 0.085, 54, 110))
-
-const riverPathEl = ref(null)
+const arrowAngleOffset = 140
+const durationMs = 15000
 const progress = ref(0)
-const arrowPoint = ref({ x: -9999, y: -9999, angle: 0 })
 
 const cities = [
-  { id: 'city-1', name: '南京', at: 0.12, offsetX: 0.08, offsetY: -0.02 },
-  { id: 'city-2', name: '合肥', at: 0.22, offsetX: -0.09, offsetY: -0.02 },
-  { id: 'city-3', name: '武汉', at: 0.34, offsetX: 0.09, offsetY: 0.0 },
-  { id: 'city-4', name: '长沙', at: 0.44, offsetX: -0.1, offsetY: 0.01 },
-  { id: 'city-5', name: '南昌', at: 0.55, offsetX: 0.09, offsetY: 0.01 },
-  { id: 'city-6', name: '广州', at: 0.67, offsetX: -0.1, offsetY: 0.02 },
-  { id: 'city-7', name: '深圳', at: 0.74, offsetX: 0.09, offsetY: 0.02 },
-  { id: 'city-8', name: '桂林', at: 0.84, offsetX: -0.09, offsetY: 0.02 },
-  { id: 'city-9', name: '昆明', at: 0.93, offsetX: 0.09, offsetY: 0.02 },
+  { id: 'city-1', name: '甘孜藏族自治州', at: 0.08, offsetX: -0.14, offsetY: -0.06 },
+  { id: 'city-2', name: '阿坝藏族羌族自治州', at: 0.14, offsetX: -0.14, offsetY: -0.02 },
+  { id: 'city-3', name: '巴中市', at: 0.2, offsetX: -0.16, offsetY: 0.02 },
+  { id: 'city-4', name: '达州市', at: 0.24, offsetX: -0.16, offsetY: 0.05 },
+  { id: 'city-5', name: '广安市', at: 0.28, offsetX: 0.14, offsetY: 0.02 },
+  { id: 'city-6', name: '资阳市', at: 0.32, offsetX: 0.16, offsetY: -0.02 },
+  { id: 'city-7', name: '眉山市', at: 0.36, offsetX: 0.14, offsetY: -0.02 },
+  { id: 'city-8', name: '雅安市', at: 0.4, offsetX: 0.14, offsetY: 0.02 },
+  { id: 'city-9', name: '宜宾市', at: 0.46, offsetX: -0.16, offsetY: 0.03 },
+  { id: 'city-10', name: '泸州市', at: 0.5, offsetX: 0.16, offsetY: 0.03 },
+  { id: 'city-11', name: '自贡市', at: 0.54, offsetX: 0.16, offsetY: 0.02 },
+  { id: 'city-12', name: '内江市', at: 0.58, offsetX: -0.16, offsetY: -0.01 },
+  { id: 'city-13', name: '遂宁市', at: 0.62, offsetX: 0.16, offsetY: -0.03 },
+  { id: 'city-14', name: '南充市', at: 0.66, offsetX: -0.18, offsetY: -0.02 },
+  { id: 'city-15', name: '广元市', at: 0.7, offsetX: -0.16, offsetY: 0.0 },
+  { id: 'city-16', name: '德阳市', at: 0.74, offsetX: 0.16, offsetY: -0.02 },
+  { id: 'city-17', name: '成都市', at: 0.8, offsetX: -0.04, offsetY: 0.08 },
+  { id: 'city-18', name: '凉山彝族自治州', at: 0.88, offsetX: 0.12, offsetY: 0.06 },
 ]
-
-const isCityVisible = (city) => {
-  const rawDelta = Math.abs(progress.value - city.at)
-  const delta = Math.min(rawDelta, 1 - rawDelta)
-  return delta <= 0.06
-}
-
-const cityBasePoints = ref([])
-
-const renderedCities = computed(() => {
-  const width = bgMeta.value.width
-  const fontSize = clamp(width * 0.028, 14, 22)
-  const paddingX = fontSize * 0.8
-  const paddingY = fontSize * 0.5
-  const charWidth = fontSize * 0.92
-  const minWidth = fontSize * 3.4
-
-  return cities.map((city) => {
-    const base = cityBasePoints.value.find((p) => p.id === city.id)
-    const x = base?.x ?? -9999
-    const y = base?.y ?? -9999
-    const textWidth = Math.max(minWidth, city.name.length * charWidth)
-    const boxWidth = textWidth + paddingX * 2
-    const boxHeight = fontSize + paddingY * 2
-    const boxRadius = clamp(boxHeight / 2, 10, 18)
-
-    return {
-      ...city,
-      x,
-      y,
-      fontSize,
-      boxWidth,
-      boxHeight,
-      boxRadius,
-    }
-  })
-})
-
-const arrowTransform = computed(() => {
-  const { x, y, angle } = arrowPoint.value
-  const half = arrowSize.value / 2
-  return `translate(${x} ${y}) rotate(${angle}) translate(${-half} ${-half})`
-})
 
 let rafId = 0
 let startAt = 0
-let cachedLength = 0
 
-const computeCityBasePoints = () => {
-  if (!riverPathEl.value) return
-  const path = riverPathEl.value
-  cachedLength = path.getTotalLength()
+const buildSegmentCache = (pts) => {
+  if (!pts || pts.length < 2) return { total: 0, segments: [] }
+  const segments = []
+  let total = 0
 
-  cityBasePoints.value = cities.map((city) => {
-    const distance = cachedLength * city.at
-    const point = path.getPointAtLength(distance)
-    return {
-      id: city.id,
-      x: point.x + city.offsetX * bgMeta.value.width,
-      y: point.y + city.offsetY * bgMeta.value.height,
-    }
-  })
+  for (let i = 0; i < pts.length - 1; i += 1) {
+    const a = pts[i]
+    const b = pts[i + 1]
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    const len = Math.hypot(dx, dy)
+    if (len <= 0.001) continue
+    const heading =
+      typeof a.heading === 'number' ? a.heading : typeof a.angle === 'number' ? a.angle : null
+    segments.push({ a, b, dx, dy, len, start: total, heading })
+    total += len
+  }
+
+  return { total, segments }
 }
 
-const tick = (now) => {
-  if (!riverPathEl.value) return
-  if (!startAt) startAt = now
+const segmentCache = computed(() => buildSegmentCache(riverImagePoints.value))
 
-  const durationMs = 6500
+const pointAtDistance = (cache, dist) => {
+  const total = cache.total
+  if (!total || cache.segments.length === 0) return { x: -9999, y: -9999, angle: 0 }
+  const d = clamp(dist, 0, total)
+
+  let seg = cache.segments[0]
+  for (let i = 0; i < cache.segments.length; i += 1) {
+    const s = cache.segments[i]
+    if (d <= s.start + s.len || i === cache.segments.length - 1) {
+      seg = s
+      break
+    }
+  }
+
+  const local = (d - seg.start) / seg.len
+  const x = seg.a.x + seg.dx * local
+  const y = seg.a.y + seg.dy * local
+  const heading =
+    typeof seg.heading === 'number' ? seg.heading : (Math.atan2(seg.dy, seg.dx) * 180) / Math.PI
+  const angle = heading + arrowAngleOffset
+  return { x, y, angle }
+}
+
+const layout = ref({ width: 0, height: 0, dpr: 1 })
+const resizeObserver = ref(null)
+
+const setCanvasSize = () => {
+  if (!stageEl.value || !canvasEl.value) return
+  const rect = stageEl.value.getBoundingClientRect()
+  const width = Math.max(1, rect.width)
+  const height = Math.max(1, rect.height)
+  const dpr = Math.max(1, window.devicePixelRatio || 1)
+  const canvas = canvasEl.value
+
+  layout.value = { width, height, dpr }
+  canvas.width = Math.round(width * dpr)
+  canvas.height = Math.round(height * dpr)
+}
+
+const bgImgEl = ref(null)
+const arrowImgEl = ref(null)
+const juxingImgEl = ref(null)
+const didianImgEl = ref(null)
+const isReady = computed(
+  () =>
+    !!bgImgEl.value &&
+    !!arrowImgEl.value &&
+    !!juxingImgEl.value &&
+    !!didianImgEl.value &&
+    !!segmentCache.value.total
+)
+
+const drawFrame = (t, lastAngle) => {
+  if (!canvasEl.value || !isReady.value) return lastAngle
+  const canvas = canvasEl.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return lastAngle
+
+  const { width, height, dpr } = layout.value
+  if (!width || !height) return lastAngle
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.clearRect(0, 0, width, height)
+
+  const imgW = bgMeta.value.width
+  const imgH = bgMeta.value.height
+  const scale = Math.max(width / imgW, height / imgH)
+  const dw = imgW * scale
+  const dh = imgH * scale
+  const dx = (width - dw) / 2
+  const dy = (height - dh) / 2
+
+  ctx.drawImage(bgImgEl.value, dx, dy, dw, dh)
+
+  const cache = segmentCache.value
+  const length = cache.total
+  if (!length) return lastAngle
+
+  const motionT = normalizeT(t + Math.sin(t * Math.PI * 2) * 0.012)
+  const distance = length * motionT
+  const point = pointAtDistance(cache, distance)
+  const x = point.x * scale + dx
+  const y = point.y * scale + dy
+
+  const arrowSize = clamp(width * 0.085, 44, 92)
+  const arrowOpacity = smoothstep(0.02, 0.08, t) * (1 - smoothstep(0.92, 0.98, t))
+  const angle = lerpAngle(lastAngle, point.angle, 0.22)
+
+  ctx.save()
+  ctx.globalAlpha = arrowOpacity
+  ctx.translate(x, y)
+  ctx.rotate((angle * Math.PI) / 180)
+  ctx.drawImage(arrowImgEl.value, -arrowSize / 2, -arrowSize / 2, arrowSize, arrowSize)
+  ctx.restore()
+
+  const nearThreshold = clamp(width * 0.16, 110, 210)
+  const fontSize = clamp(width * 0.034, 14, 26)
+  const paddingX = fontSize * 0.95
+  const minWidth = fontSize * 3.8
+
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.font = `${fontSize}px sans-serif`
+
+  const candidates = []
+  for (const city of cities) {
+    const base = pointAtDistance(cache, length * city.at)
+    const cx = (base.x + city.offsetX * imgW) * scale + dx
+    const cy = (base.y + city.offsetY * imgH) * scale + dy
+    const distPx = Math.hypot(cx - x, cy - y)
+    const k = clamp01(1 - distPx / nearThreshold)
+    const score = k * k
+    if (score <= 0.05) continue
+    candidates.push({ city, cx, cy, score })
+  }
+
+  candidates.sort((a, b) => b.score - a.score)
+  const visible = candidates.slice(0, 2)
+
+  for (const item of visible) {
+    const { city, cx, cy, score } = item
+    const alpha = 1
+
+    const measured = ctx.measureText(city.name)
+    const textWidth = Math.max(minWidth, measured.width)
+    const boxH = fontSize * 2.6
+    const scaleUp = 1
+
+    const didianAspect =
+      (didianImgEl.value?.naturalWidth || 1) / (didianImgEl.value?.naturalHeight || 1)
+    const iconH = boxH * 0.58
+    const iconW = iconH * didianAspect
+    const iconPadRight = fontSize * 0.45
+    const contentW = iconW + iconPadRight + textWidth
+    const boxW = contentW + paddingX * 2
+    const iconLeft = -boxW / 2 + paddingX
+    const iconCenterX = iconLeft + iconW / 2
+    const textX = iconLeft + iconW + iconPadRight
+
+    const phase = (performance.now() / 1000 + city.at * 3.1) % 1
+    const ripple1 = phase
+    const ripple2 = (phase + 0.45) % 1
+
+    ctx.save()
+    ctx.translate(cx, cy)
+    ctx.scale(scaleUp, scaleUp)
+    ctx.globalAlpha = alpha
+
+    const rippleColor = 'rgba(120, 210, 255, 0.7)'
+    const iconR = Math.max(6, iconH * 0.3)
+    const rippleMax = iconR * 3.6
+    const baseRippleAlpha = 0.35
+
+    for (const r of [ripple1, ripple2]) {
+      const rr = iconR * 1.2 + rippleMax * r
+      const ra = baseRippleAlpha * (1 - r)
+      if (ra <= 0.01) continue
+      ctx.beginPath()
+      ctx.arc(iconCenterX, 0, rr, 0, Math.PI * 2)
+      ctx.strokeStyle = rippleColor
+      ctx.lineWidth = 2
+      ctx.globalAlpha = ra
+      ctx.stroke()
+    }
+
+    ctx.globalAlpha = 1
+    ctx.drawImage(juxingImgEl.value, -boxW / 2, -boxH / 2, boxW, boxH)
+
+    ctx.drawImage(didianImgEl.value, iconLeft, -iconH / 2, iconW, iconH)
+
+    ctx.fillStyle = 'rgba(240, 251, 255, 0.96)'
+    ctx.fillText(city.name, textX, 0)
+    ctx.restore()
+  }
+
+  return angle
+}
+
+let lastAngle = 0
+
+const tick = (now) => {
+  if (!startAt) startAt = now
   const elapsed = (now - startAt) % durationMs
   const t = elapsed / durationMs
   progress.value = t
-
-  const path = riverPathEl.value
-  const length = cachedLength || path.getTotalLength()
-  cachedLength = length
-  const distance = length * t
-  const point = path.getPointAtLength(distance)
-  const nextPoint = path.getPointAtLength(Math.min(distance + 2, length))
-
-  const angle = (Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * 180) / Math.PI
-
-  arrowPoint.value = {
-    x: point.x,
-    y: point.y,
-    angle,
-  }
-
+  lastAngle = drawFrame(t, lastAngle)
   rafId = requestAnimationFrame(tick)
 }
+
+const loadImage = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
 
 onMounted(() => {
   const prefersReducedMotion =
@@ -217,32 +403,41 @@ onMounted(() => {
     window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  const img = new Image()
-  img.onload = () => {
-    bgMeta.value = { width: img.naturalWidth || 1000, height: img.naturalHeight || 2000 }
-    requestAnimationFrame(() => {
-      computeCityBasePoints()
+  Promise.all([loadImage(bgImage), loadImage(arrowImage), loadImage(juxing), loadImage(didian)])
+    .then(([bgImg, aImg, juxingImg, didianImg]) => {
+      bgImgEl.value = bgImg
+      arrowImgEl.value = aImg
+      juxingImgEl.value = juxingImg
+      didianImgEl.value = didianImg
+      bgMeta.value = {
+        width: bgImg.naturalWidth || 1000,
+        height: bgImg.naturalHeight || 2000,
+      }
+
+      setCanvasSize()
+      drawFrame(0, 0)
+
+      resizeObserver.value = new ResizeObserver(() => {
+        setCanvasSize()
+        drawFrame(progress.value || 0, lastAngle)
+      })
+      resizeObserver.value.observe(stageEl.value)
 
       if (prefersReducedMotion) {
         progress.value = 0
-        const path = riverPathEl.value
-        const length = path.getTotalLength()
-        cachedLength = length
-        const p = path.getPointAtLength(0)
-        const p2 = path.getPointAtLength(Math.min(2, length))
-        const angle = (Math.atan2(p2.y - p.y, p2.x - p.x) * 180) / Math.PI
-        arrowPoint.value = { x: p.x, y: p.y, angle }
         return
       }
 
+      startAt = 0
+      lastAngle = 0
       rafId = requestAnimationFrame(tick)
     })
-  }
-  img.src = bgImage
+    .catch(() => {})
 })
 
 onBeforeUnmount(() => {
   if (rafId) cancelAnimationFrame(rafId)
+  if (resizeObserver.value) resizeObserver.value.disconnect()
 })
 </script>
 
@@ -262,52 +457,26 @@ onBeforeUnmount(() => {
   z-index: 0;
 }
 
-.footprint-bg {
+.footprint-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
   user-select: none;
   pointer-events: none;
+  z-index: 0;
+  background-color: #010d3d;
 }
 
-.footprint-overlay {
+.footprint-text {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.footprint-path {
-  fill: none;
-  stroke: transparent;
-  stroke-width: 1;
-}
-
-.city-label-inner {
-  opacity: 0;
-  transform: scale(0.92);
-  transform-origin: center;
-  transition:
-    opacity 260ms ease,
-    transform 260ms ease;
-}
-
-.city-label-inner--visible {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.city-label-rect {
-  fill: rgba(4, 18, 66, 0.6);
-  stroke: rgba(120, 210, 255, 0.35);
-  stroke-width: 2;
-}
-
-.city-label-text {
-  fill: rgba(240, 251, 255, 0.95);
-  letter-spacing: 1px;
+  top: 10px;
+  left: 50%;
+  width: min(92vw, 520px);
+  height: auto;
+  transform: translateX(-50%);
+  user-select: none;
+  pointer-events: none;
+  z-index: 1;
 }
 </style>
