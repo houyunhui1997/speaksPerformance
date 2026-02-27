@@ -8,6 +8,7 @@ import topicCardLg from '@/assets/topic/topic-card-lg.png'
 import topicCardSm from '@/assets/topic/topic-card-sm.png'
 import topicCardXs from '@/assets/topic/topic-card-xs.png'
 import { useRouter } from 'vue-router'
+import { topicSphereList } from '@/pages/topic/mock'
 // 1. 修改图片映射：新增 'wide' 类型，使用 XL 大图作为背景
 const frameBySize = {
   wide: topicCardXl, // <--- 新增：长条形专门用大图，防止拉伸模糊
@@ -19,24 +20,6 @@ const frameBySize = {
 }
 
 // 2. 修改数据：将“成渝...”的 size 改为 'wide'
-const rawTopics = [
-  { key: 'integration', label: '城乡融合', size: 'md' },
-  { key: 'plan', label: '发展规划', size: 'md' },
-  { key: 'four', label: '四个发力', size: 'xl' },
-  { key: 'law', label: '法制四川', size: 'md' },
-  { key: 'traffic', label: '交通', size: 'lg' },
-  { key: 'livelihood', label: '民生', size: 'sm' },
-  { key: 'finance', label: '财税金融', size: 'lg' },
-  // ↓↓↓ 修改这里：size 改为 wide，文字写全 ↓↓↓
-  { key: 'chengyu', label: '成渝地区双城经济圈', size: 'wide' },
-  { key: 'industry', label: '产业', size: 'sm' },
-  { key: 'reform', label: '改革开放', size: 'lg' },
-  { key: 'other', label: '其他', size: 'sm' },
-  { key: 'culture', label: '宣传文旅', size: 'xl' },
-  { key: 'ecology', label: '生态', size: 'lg' },
-  { key: 'grain', label: '天府粮仓', size: 'sm' },
-]
-
 const RADIUS = 160
 const FOCAL_LENGTH = 400
 const BASE_SPEED = 0.003
@@ -50,10 +33,10 @@ let lastY = 0
 
 // 初始化逻辑保持不变...
 const initTags = () => {
-  const len = rawTopics.length
+  const len = topicSphereList.length
   const phi = Math.PI * (3 - Math.sqrt(5))
 
-  tags.value = rawTopics.map((item, i) => {
+  tags.value = topicSphereList.map((item, i) => {
     const y = 1 - (i / (len - 1)) * 2
     const radiusAtY = Math.sqrt(1 - y * y)
     const theta = phi * i

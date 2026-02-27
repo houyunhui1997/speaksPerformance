@@ -12,85 +12,10 @@ import contentRightTop from '@/assets/topic/content-right-top.png'
 import contentRightBottom from '@/assets/topic/content-right-bottom.png'
 import contentLeftTop from '@/assets/topic/content-left-top.png'
 import contentLeftBottom from '@/assets/topic/content-left-bottom.png'
+import { topicDetailByYear, topicYearTabs } from '@/pages/topic/mock'
 
-const yearTabs = ['2025', '2024', '2023']
 const activeYear = ref('2025')
 const router = useRouter()
-
-const detailByYear = {
-  2025: [
-    {
-      id: '25-1',
-      content: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
-      tag: '科技创新',
-      author: '—— 王麒',
-    },
-    {
-      id: '25-2',
-      content: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
-      tag: '交通 / 航运',
-      author: '—— 王瑛',
-    },
-    {
-      id: '25-3',
-      content: '关于支持四川建设成为全国氢能产业发展高地的建议',
-      tag: '产业 / 氢能',
-      author: '—— 欧阳梅',
-    },
-    {
-      id: '25-4',
-      content: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
-      tag: '科技创新',
-      author: '—— 王璞',
-    },
-    {
-      id: '25-5',
-      content: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
-      tag: '交通 / 航运',
-      author: '—— 欧阳梅',
-    },
-  ],
-  2024: [
-    {
-      id: '24-1',
-      content: '关于优化川渝两地产业链协同机制提升科技成果转化效率的建议',
-      tag: '成渝地区双城经济圈',
-      author: '—— 代表团',
-    },
-    {
-      id: '24-2',
-      content: '关于加快县域医疗服务能力提升推动基层医疗资源均衡配置的建议',
-      tag: '民生',
-      author: '—— 代表团',
-    },
-    {
-      id: '24-3',
-      content: '关于完善绿色低碳产业扶持政策推动重点园区节能改造的建议',
-      tag: '生态 / 产业',
-      author: '—— 代表团',
-    },
-  ],
-  2023: [
-    {
-      id: '23-1',
-      content: '关于推进数字政府建设提升公共服务一网通办质量的建议',
-      tag: '改革开放',
-      author: '—— 代表团',
-    },
-    {
-      id: '23-2',
-      content: '关于加强重要农产品仓储物流体系建设保障粮食安全的建议',
-      tag: '天府粮仓',
-      author: '—— 代表团',
-    },
-    {
-      id: '23-3',
-      content: '关于打造区域文旅品牌推进文化消费场景创新的建议',
-      tag: '宣传、文旅',
-      author: '—— 代表团',
-    },
-  ],
-}
 
 // 根据气泡尾巴的位置，避让相应的区域
 const bubbleConfigs = [
@@ -142,7 +67,7 @@ const processItem = (item, index) => {
 }
 
 const displayList = computed(() => {
-  const origin = detailByYear[activeYear.value] || []
+  const origin = topicDetailByYear[activeYear.value] || []
   if (origin.length === 0) return []
 
   let list = [...origin]
@@ -177,7 +102,7 @@ const getWobbleStyle = () => {
     <main class="topic-detail" :style="{ backgroundImage: `url(${bgImage})` }">
       <nav class="year-tabs">
         <button
-          v-for="year in yearTabs"
+          v-for="year in topicYearTabs"
           :key="year"
           type="button"
           class="year-tabs__item"

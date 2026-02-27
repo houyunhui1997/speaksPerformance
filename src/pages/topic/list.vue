@@ -1,13 +1,15 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/list-bg.png'
 import dialogRight from '@/assets/topic/dialog-right.png'
 import dialogLeft from '@/assets/topic/dialog-left.png'
+import { topicListByYear } from '@/pages/topic/mock'
 
 const route = useRoute()
+const router = useRouter()
 const listWrapperRef = ref(null)
 const isAutoScrollPaused = ref(false)
 
@@ -18,94 +20,8 @@ let rafId = 0
 let resumeTimer = 0
 let autoScrollPos = 0
 
-const listByYear = {
-  2025: [
-    {
-      id: '25-1',
-      title: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
-      date: '2025年3月12日',
-      source: '人民日报',
-      author: '王麒',
-    },
-    {
-      id: '25-2',
-      title: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
-      date: '2025年3月12日',
-      source: '人民日报',
-      author: '王瑛',
-    },
-    {
-      id: '25-3',
-      title: '关于支持四川建设成为全国氢能产业发展高地的建议',
-      date: '2025年3月12日',
-      source: '人民日报',
-      author: '欧阳梅',
-    },
-    {
-      id: '25-4',
-      title: '关于推动川渝以大科学装置为抓手联合打造国家科技战略腹地的建议',
-      date: '2025年3月12日',
-      source: '人民日报',
-      author: '王璞',
-    },
-    {
-      id: '25-5',
-      title: '关于加快建设嘉陵江井口生态航运枢纽突破嘉陵江黄金水道瓶颈制约的建议',
-      date: '2025年3月12日',
-      source: '人民日报',
-      author: '欧阳梅',
-    },
-  ],
-  2024: [
-    {
-      id: '24-1',
-      title: '关于优化川渝两地产业链协同机制提升科技成果转化效率的建议',
-      date: '2024年3月11日',
-      source: '人民日报',
-      author: '代表团',
-    },
-    {
-      id: '24-2',
-      title: '关于加快县域医疗服务能力提升推动基层医疗资源均衡配置的建议',
-      date: '2024年3月11日',
-      source: '人民日报',
-      author: '代表团',
-    },
-    {
-      id: '24-3',
-      title: '关于完善绿色低碳产业扶持政策推动重点园区节能改造的建议',
-      date: '2024年3月11日',
-      source: '人民日报',
-      author: '代表团',
-    },
-  ],
-  2023: [
-    {
-      id: '23-1',
-      title: '关于推进数字政府建设提升公共服务一网通办质量的建议',
-      date: '2023年3月10日',
-      source: '人民日报',
-      author: '代表团',
-    },
-    {
-      id: '23-2',
-      title: '关于加强重要农产品仓储物流体系建设保障粮食安全的建议',
-      date: '2023年3月10日',
-      source: '人民日报',
-      author: '代表团',
-    },
-    {
-      id: '23-3',
-      title: '关于打造区域文旅品牌推进文化消费场景创新的建议',
-      date: '2023年3月10日',
-      source: '人民日报',
-      author: '代表团',
-    },
-  ],
-}
-
 const activeYear = computed(() => String(route.query.year || '2025'))
-const displayList = computed(() => listByYear[activeYear.value] || listByYear['2025'])
+const displayList = computed(() => topicListByYear[activeYear.value] || topicListByYear['2025'])
 const scrollList = computed(() => {
   const origin = displayList.value
   if (origin.length === 0) return []
@@ -121,6 +37,27 @@ const scrollList = computed(() => {
   }))
 })
 const getDialogBg = (index) => (index % 2 === 0 ? dialogRight : dialogLeft)
+
+const handleCardLink = (card) => {
+  if (!card?.link) return
+
+  if (/^https?:\/\//.test(card.link)) {
+    window.open(card.link, '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  router.push(card.link)
+}
+
+const goAuthorDetail = (card) => {
+  router.push({
+    name: 'topicAuthor',
+    query: {
+      year: activeYear.value,
+      author: card.author,
+    },
+  })
+}
 
 const pauseAutoScroll = () => {
   const el = listWrapperRef.value
@@ -180,11 +117,23 @@ onUnmounted(() => {
           class="list-card"
           :class="index % 2 === 0 ? 'list-card--right' : 'list-card--left'"
           :style="{ backgroundImage: `url(${getDialogBg(index)})` }"
+          role="button"
+          tabindex="0"
+          :data-clickable="Boolean(card.link)"
+          @click="handleCardLink(card)"
+          @keydown.enter.prevent="handleCardLink(card)"
         >
           <h3 class="list-card__title">{{ card.title }}</h3>
           <div class="list-card__meta">
             <span class="list-card__source">{{ card.date }} {{ card.source }}</span>
-            <span class="list-card__author">{{ card.author }}</span>
+            <button
+              type="button"
+              class="list-card__author-btn"
+              @click.stop="goAuthorDetail(card)"
+              @keydown.enter.stop.prevent="goAuthorDetail(card)"
+            >
+              <span class="list-card__author">{{ card.author }}</span>
+            </button>
           </div>
         </article>
       </section>
@@ -241,6 +190,10 @@ onUnmounted(() => {
   background-size: 100% 100%;
 }
 
+.list-card[data-clickable='true'] {
+  cursor: pointer;
+}
+
 .list-card--right {
   padding-right: 18px;
 }
@@ -270,6 +223,13 @@ onUnmounted(() => {
   font-size: 12px;
   color: rgba(124, 232, 255, 0.78);
   white-space: nowrap;
+}
+
+.list-card__author-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
 }
 
 .list-card__author {

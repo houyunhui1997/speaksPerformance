@@ -42,6 +42,11 @@ const router = createRouter({
       name: 'topicList',
       component: () => import('@/pages/topic/list.vue'),
     },
+    {
+      path: '/topic/author',
+      name: 'topicAuthor',
+      component: () => import('@/pages/topic/author.vue'),
+    },
   ],
 })
 
