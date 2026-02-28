@@ -1,8 +1,13 @@
 <template>
   <div class="footprint-page">
-    <div ref="stageEl" class="footprint-stage" @click="handleStageClick">
+    <div ref="stageEl" class="footprint-stage">
       <canvas ref="canvasEl" class="footprint-canvas"></canvas>
-      <img class="footprint-text" :src="textImg" alt="" />
+      <div class="footprint-text-container">
+        <img class="footprint-text" :src="textImg" alt="" />
+        <div class="fonttext">
+          本届在川全国人大代表和四川省全国政协委员，共计200余名。据不完全统计，2023年-2025年，代表委员们共带来976份建议和提案,调研涉及四川21个市(州)共831次。
+        </div>
+      </div>
     </div>
     <Tabbar />
   </div>
@@ -10,7 +15,6 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 import { getCities } from '@/api/footprint'
 import arrowImage from '@/assets/footprint/arrow.png'
@@ -22,9 +26,6 @@ import Tabbar from '@/compontents/tabbar.vue'
 
 const stageEl = ref(null)
 const canvasEl = ref(null)
-const router = useRouter()
-
-let clickableItems = []
 
 const bgMeta = ref({ width: 1000, height: 2000 })
 
@@ -162,12 +163,7 @@ const progress = ref(0)
 const cities = getCities()
 
 const revealedCityIds = new Set()
-let revealCursor = 0
-let lastLoopIndex = -1
 let currentLoopIndex = 0
-
-const revealPerFrame = 2
-const revealPerLoop = 2
 
 let rafId = 0
 let startAt = 0
@@ -355,39 +351,43 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   ctx.textBaseline = 'middle'
   ctx.font = `${fontSize}px sans-serif`
 
-  if (loopIndex !== lastLoopIndex) {
-    lastLoopIndex = loopIndex
-    let added = 0
-    while (added < revealPerLoop && revealedCityIds.size < cities.length) {
-      const city = cities[revealCursor % cities.length]
-      revealCursor += 1
-      if (city && !revealedCityIds.has(city.id)) {
-        revealedCityIds.add(city.id)
+  if (loopIndex === 0 && revealedCityIds.size < cities.length) {
+    const revealT = smoothstep(0.05, 0.92, t)
+    const targetCount = clamp(Math.floor(revealT * cities.length), 0, cities.length)
+    const need = targetCount - revealedCityIds.size
+
+    if (need > 0) {
+      const candidates = []
+      for (const city of cities) {
+        if (revealedCityIds.has(city.id)) continue
+        const base = pointAtDistance(cache, length * city.at)
+        const cx = (base.x + city.offsetX * imgW) * scale + dx
+        const cy = (base.y + city.offsetY * imgH) * scale + dy
+        const distPx = Math.hypot(cx - x, cy - y)
+        const k = clamp01(1 - distPx / nearThreshold)
+        const score = k * k
+        if (score <= 0.01) continue
+        candidates.push({ city, score })
+      }
+
+      candidates.sort((a, b) => b.score - a.score)
+      let added = 0
+      const cap = Math.max(2, Math.ceil(cities.length / 8))
+      for (const item of candidates) {
+        if (added >= need || added >= cap) break
+        revealedCityIds.add(item.city.id)
         added += 1
       }
-    }
-  }
 
-  const candidates = []
-  for (const city of cities) {
-    if (revealedCityIds.has(city.id)) continue
-    const base = pointAtDistance(cache, length * city.at)
-    const cx = (base.x + city.offsetX * imgW) * scale + dx
-    const cy = (base.y + city.offsetY * imgH) * scale + dy
-    const distPx = Math.hypot(cx - x, cy - y)
-    const k = clamp01(1 - distPx / nearThreshold)
-    const score = k * k
-    if (score <= 0.05) continue
-    candidates.push({ city, score })
-  }
-
-  candidates.sort((a, b) => b.score - a.score)
-  let newlyRevealed = 0
-  for (const item of candidates) {
-    if (newlyRevealed >= revealPerFrame) break
-    if (!revealedCityIds.has(item.city.id)) {
-      revealedCityIds.add(item.city.id)
-      newlyRevealed += 1
+      if (added < need) {
+        const ordered = [...cities].sort((a, b) => a.at - b.at)
+        for (const city of ordered) {
+          if (added >= need) break
+          if (revealedCityIds.has(city.id)) continue
+          revealedCityIds.add(city.id)
+          added += 1
+        }
+      }
     }
   }
 
@@ -402,7 +402,11 @@ const drawFrame = (t, loopIndex, lastAngle) => {
     const baseX = (base.x + city.offsetX * imgW) * scale + dx
     const baseY = (base.y + city.offsetY * imgH) * scale + dy
 
-    const measured = ctx.measureText(city.name)
+    const labelText =
+      typeof city.count === 'number' && Number.isFinite(city.count)
+        ? `${city.name} ${city.count}`
+        : city.name
+    const measured = ctx.measureText(labelText)
     const textWidth = Math.max(minWidth, measured.width)
     const boxH = fontSize * 2.6
     const scaleUp = 1
@@ -430,6 +434,7 @@ const drawFrame = (t, loopIndex, lastAngle) => {
     placedRects.push(placed.rect)
     renderItems.push({
       city,
+      labelText,
       cx: placed.x,
       cy: placed.y,
       boxW,
@@ -444,10 +449,22 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   }
 
   renderItems.sort((a, b) => a.city.at - b.city.at)
-  clickableItems = renderItems
 
   for (const item of renderItems) {
-    const { city, cx, cy, boxW, boxH, scaleUp, iconLeft, iconCenterX, iconW, iconH, textX } = item
+    const {
+      city,
+      labelText,
+      cx,
+      cy,
+      boxW,
+      boxH,
+      scaleUp,
+      iconLeft,
+      iconCenterX,
+      iconW,
+      iconH,
+      textX,
+    } = item
     const alpha = 1
 
     const phase = (performance.now() / 1000 + city.at * 3.1) % 1
@@ -482,7 +499,7 @@ const drawFrame = (t, loopIndex, lastAngle) => {
     ctx.drawImage(didianImgEl.value, iconLeft, -iconH / 2, iconW, iconH)
 
     ctx.fillStyle = 'rgba(240, 251, 255, 0.96)'
-    ctx.fillText(city.name, textX, 0)
+    ctx.fillText(labelText, textX, 0)
     ctx.restore()
   }
 
@@ -553,36 +570,6 @@ onBeforeUnmount(() => {
   if (rafId) cancelAnimationFrame(rafId)
   if (resizeObserver.value) resizeObserver.value.disconnect()
 })
-
-const handleStageClick = (e) => {
-  if (!canvasEl.value) return
-  const rect = canvasEl.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-
-  // Iterate in reverse order to check top-most items first
-  for (let i = clickableItems.length - 1; i >= 0; i--) {
-    const item = clickableItems[i]
-    const { cx, cy, boxW, boxH, city } = item
-
-    // cx, cy are the center coordinates
-    const left = cx - boxW / 2
-    const right = cx + boxW / 2
-    const top = cy - boxH / 2
-    const bottom = cy + boxH / 2
-
-    if (x >= left && x <= right && y >= top && y <= bottom) {
-      router.push({
-        name: 'topicList',
-        query: {
-          cityId: city.id,
-          cityName: city.name,
-        },
-      })
-      return
-    }
-  }
-}
 </script>
 
 <style scoped>
@@ -612,13 +599,25 @@ const handleStageClick = (e) => {
   background-color: #010d3d;
 }
 
-.footprint-text {
+.footprint-text-container {
   position: absolute;
   top: 10px;
-  left: 50%;
-  width: min(92vw, 520px);
+  left: 0%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 20px;
+}
+
+.fonttext {
+  font-size: 14px;
+  line-height: 22px;
+  color: #fff;
+}
+
+.footprint-text {
+  width: min(30vw, 520px);
   height: auto;
-  transform: translateX(-50%);
+  /* transform: translateX(-50%); */
   user-select: none;
   pointer-events: none;
   z-index: 1;
