@@ -36,8 +36,8 @@ const riverSegments = [
   { x: -0.18, y: -0.1, heading: -60, moveLen: 0.68 },
   { x: 0.7, y: -0.41, heading: -90, moveLen: 0.3 },
   { x: -0.1, y: -0.3, heading: -40, moveLen: 0.09 },
-  { x: 0.6, y: -0.2,heading: -90, moveLen: 0.15 },
-  { x: 0.2, y: -0.4,heading: -90, moveLen: 0.32 },
+  { x: 0.6, y: -0.2, heading: -90, moveLen: 0.15 },
+  { x: 0.2, y: -0.4, heading: -90, moveLen: 0.32 },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
@@ -564,7 +564,7 @@ const handleStageClick = (e) => {
   for (let i = clickableItems.length - 1; i >= 0; i--) {
     const item = clickableItems[i]
     const { cx, cy, boxW, boxH, city } = item
-    
+
     // cx, cy are the center coordinates
     const left = cx - boxW / 2
     const right = cx + boxW / 2
@@ -576,8 +576,8 @@ const handleStageClick = (e) => {
         name: 'topicList',
         query: {
           cityId: city.id,
-          cityName: city.name
-        }
+          cityName: city.name,
+        },
       })
       return
     }

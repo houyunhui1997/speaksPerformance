@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import bgImage from '@/assets/homepage/background.png'
 import titleImage from '@/assets/homepage/title.png'
@@ -7,13 +8,49 @@ import logo_01 from '@/assets/homepage/logo1.png'
 import logo_02 from '@/assets/homepage/logo2.png'
 import logo_03 from '@/assets/homepage/logo3.png'
 import year_2026 from '@/assets/homepage/2026.png'
+import H5VideoPlayer from '@/compontents/h5-video-player.vue'
+import openingVideo from '@/assets/video/test_video.mp4'
+
 const router = useRouter()
+const showVideo = ref(true)
+const videoOpacity = ref(1)
+
+const handleVideoEnded = () => {
+  showVideo.value = false
+}
+
+const handleTimeUpdate = (e) => {
+  const currentTime = e.currentTime || (e.video ? e.video.currentTime : 0)
+  const duration = e.duration || (e.video ? e.video.duration : 0)
+
+  if (duration > 0) {
+    const timeLeft = duration - currentTime
+    // Start fading out in the last 1.5 seconds
+    if (timeLeft <= 0.5) {
+      videoOpacity.value = Math.max(0, timeLeft / 0.5)
+    } else {
+      videoOpacity.value = 1
+    }
+  }
+}
+
 const handleEnter = () => {
   router.push('/footprint')
 }
 </script>
 
 <template>
+  <div v-if="showVideo" class="opening-video" :style="{ opacity: videoOpacity }">
+    <H5VideoPlayer
+      :src="openingVideo"
+      :autoplay="true"
+      :controls="false"
+      :muted="true"
+      fill-mode="cover"
+      @ended="handleVideoEnded"
+      @timeupdate="handleTimeUpdate"
+    />
+  </div>
   <main class="landing-page" :style="{ backgroundImage: `url(${bgImage})` }">
     <section class="landing-page__stage">
       <div class="landing-page__logo">
@@ -181,5 +218,12 @@ const handleEnter = () => {
     /* 如果图片是透明PNG，drop-shadow会产生很好的发光效果 */
     filter: drop-shadow(0 0 15px rgba(100, 220, 255, 0.6));
   }
+}
+
+.opening-video {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: #000;
 }
 </style>

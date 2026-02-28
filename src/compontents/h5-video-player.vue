@@ -39,7 +39,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['ready', 'play', 'pause', 'ended', 'error'])
+const emit = defineEmits(['ready', 'play', 'pause', 'ended', 'error', 'timeupdate'])
 const rootRef = ref(null)
 let player = null
 
@@ -95,6 +95,7 @@ const createPlayer = async () => {
   player.on(Events.PAUSE, () => emit('pause'))
   player.on(Events.ENDED, () => emit('ended'))
   player.on(Events.ERROR, (error) => emit('error', error))
+  player.on(Events.TIME_UPDATE, (event) => emit('timeupdate', event))
 }
 
 watch(
