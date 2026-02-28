@@ -64,7 +64,7 @@ const createPlayer = async () => {
     poster: props.poster,
     plugins: useHls ? [HlsPlugin] : [],
     hls: useHls ? props.hlsConfig : undefined,
-    fluid: true,
+    fluid: false,
     width: '100%',
     height: '100%',
     playsinline: true,
@@ -97,6 +97,12 @@ const createPlayer = async () => {
   player.on(Events.ERROR, (error) => emit('error', error))
   player.on(Events.TIME_UPDATE, (event) => emit('timeupdate', event))
 }
+
+defineExpose({
+  play: () => player?.play(),
+  pause: () => player?.pause(),
+  player: () => player,
+})
 
 watch(
   () => props.src,
@@ -137,5 +143,10 @@ onUnmounted(() => {
 .h5-video-player__inner {
   width: 100%;
   height: 100%;
+}
+
+:deep(video) {
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>

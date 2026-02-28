@@ -17,4 +17,7 @@ export default defineConfig({
     host: '0.0.0.0', // 局域网可访问（可选）
     open: true, // 启动时自动打开浏览器（可选）
   },
+  server: {
+    host: true,
+  },
 })

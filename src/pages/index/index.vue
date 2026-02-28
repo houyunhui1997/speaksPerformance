@@ -9,16 +9,29 @@ import logo_02 from '@/assets/homepage/logo2.png'
 import logo_03 from '@/assets/homepage/logo3.png'
 import year_2026 from '@/assets/homepage/2026.png'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
-import openingVideo from '@/assets/video/test_video.mp4'
+import openingVideo from '@/assets/video/index.mp4'
 
 const router = useRouter()
 const showVideo = ref(true)
 const showHome = ref(false)
 const videoOpacity = ref(1)
+const playerRef = ref(null)
+const showCover = ref(true)
 
 const handleVideoEnded = () => {
   showHome.value = true
   showVideo.value = false
+}
+
+const handlePlay = () => {
+  showCover.value = false
+}
+
+const handleCoverClick = () => {
+  if (playerRef.value) {
+    playerRef.value.play()
+    showCover.value = false
+  }
 }
 
 const handleTimeUpdate = (e) => {
@@ -46,14 +59,19 @@ const handleEnter = () => {
     <div v-if="showVideo" class="opening-video" :style="{ opacity: videoOpacity }">
       <div class="opening-video__player">
         <H5VideoPlayer
+          ref="playerRef"
           :src="openingVideo"
           :autoplay="true"
           :controls="false"
-          :muted="true"
-          fill-mode="contain"
+          :muted="false"
+          fill-mode="fill"
           @ended="handleVideoEnded"
           @timeupdate="handleTimeUpdate"
+          @play="handlePlay"
         />
+        <div v-if="showCover" class="video-cover" @click="handleCoverClick">
+          <div class="video-cover__play-icon"></div>
+        </div>
       </div>
     </div>
   </transition>
@@ -241,12 +259,46 @@ const handleEnter = () => {
 
 .opening-video__player {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(100vw, calc(100vh * 16 / 9));
-  aspect-ratio: 16 / 9;
-  max-height: 100vh;
-  transform: translate(-50%, -50%);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  background: radial-gradient(circle, #2b6cb0 0%, #05145f 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.video-cover__play-icon {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-cover__play-icon::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 12px 0 12px 20px;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 5px; /* Adjust for visual center */
 }
 
 .video-fade-leave-active {
