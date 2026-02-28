@@ -5,7 +5,7 @@ import Tabbar from '@/compontents/tabbar.vue'
 <template>
   <div class="page">
     <div class="page__content">
-      <h1>舆情页面 (Public Opinion)</h1>
+      <iframe src="https://wz.mala.cn" class="webview" frameborder="0"></iframe>
     </div>
     <Tabbar />
   </div>
@@ -23,7 +23,16 @@ import Tabbar from '@/compontents/tabbar.vue'
 }
 
 .page__content {
-  padding: 20px;
+  width: 100%;
+  height: 100%;
   padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.webview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
 }
 </style>
