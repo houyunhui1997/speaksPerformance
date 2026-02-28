@@ -8,7 +8,7 @@ import Author from '@/assets/topic/author.png'
 import dialogTop from '@/assets/topic/dialog-top.png'
 import authorIcon01 from '@/assets/topic/author-icon-01.png'
 import authorIcon02 from '@/assets/topic/author-icon-02.png'
-import { topicListByYear, topicProfileByAuthor } from '@/pages/topic/mock'
+import { topicListByYear } from '@/pages/topic/mock'
 const route = useRoute()
 
 const normalizeAuthorName = (name) =>
@@ -17,20 +17,6 @@ const normalizeAuthorName = (name) =>
     .trim()
 
 const activeAuthor = computed(() => normalizeAuthorName(route.query.author || ''))
-const normalizedProfileMap = Object.entries(topicProfileByAuthor).reduce((acc, [key, value]) => {
-  acc[normalizeAuthorName(key)] = value
-  return acc
-}, {})
-const createFallbackProfile = (name) => ({
-  name: name || '作者',
-  subtitle: '',
-  titles: ['暂无作者简介'],
-})
-const authorProfile = computed(() => {
-  const key = activeAuthor.value
-  if (!key) return topicProfileByAuthor['代表团'] || createFallbackProfile('代表团')
-  return topicProfileByAuthor[key] || normalizedProfileMap[key] || createFallbackProfile(key)
-})
 
 const authorTopics = computed(() => {
   if (!activeAuthor.value) return []
@@ -41,6 +27,21 @@ const authorTopics = computed(() => {
     }))
   )
   return allTopics.filter((item) => normalizeAuthorName(item.author) === activeAuthor.value)
+})
+
+const authorYears = computed(() =>
+  [...new Set(authorTopics.value.map((item) => item.year))].sort((a, b) => Number(b) - Number(a))
+)
+
+const authorProfile = computed(() => {
+  const name = activeAuthor.value || '作者'
+  const total = authorTopics.value.length
+  const yearsText = authorYears.value.length > 0 ? authorYears.value.join('、') : '暂无'
+  return {
+    name,
+    subtitle: `共 ${total} 件议题`,
+    titles: [`覆盖年份：${yearsText}`],
+  }
 })
 </script>
 
@@ -65,9 +66,9 @@ const authorTopics = computed(() => {
 
             <div class="author-info-content">
               <h2 class="author-name">{{ authorProfile.name }}</h2>
-              <p class="author-subtitle">{{ authorProfile.subtitle }}</p>
+              <!-- <p class="author-subtitle">{{ authorProfile.subtitle }}</p> -->
 
-              <div class="author-title-list">
+              <!-- <div class="author-title-list">
                 <p
                   v-for="(line, idx) in authorProfile.titles"
                   :key="`${authorProfile.name}-${idx}`"
@@ -75,7 +76,7 @@ const authorTopics = computed(() => {
                 >
                   {{ line }}
                 </p>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
