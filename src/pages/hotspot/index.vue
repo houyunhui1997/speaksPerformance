@@ -189,10 +189,15 @@ onUnmounted(() => {
               @click.stop="openVideo(card)"
               @keydown.enter.prevent="openVideo(card)"
             >
-              <div
-                class="hotspot-card__thumb"
-                :style="{ backgroundImage: `url(${card.thumb})` }"
-              ></div>
+              <div class="hotspot-card__thumb">
+                <video
+                  class="hotspot-card__video"
+                  :src="`${card.url}#t=0.1`"
+                  muted
+                  preload="metadata"
+                  playsinline
+                ></video>
+              </div>
             </div>
           </article>
         </section>
@@ -376,6 +381,13 @@ $tower-layouts: (
     background-size: 100% 100%;
     background-position: center;
     overflow: hidden;
+  }
+
+  &__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   &:focus-visible {
