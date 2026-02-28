@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/list-bg.png'
@@ -10,18 +10,37 @@ import authorIcon01 from '@/assets/topic/author-icon-01.png'
 import authorIcon02 from '@/assets/topic/author-icon-02.png'
 import { topicListByYear, topicProfileByAuthor } from '@/pages/topic/mock'
 const route = useRoute()
-const router = useRouter()
 
-const activeYear = computed(() => String(route.query.year || '2025'))
-const activeAuthor = computed(() => String(route.query.author || '王麒'))
-const authorProfile = computed(
-  () => topicProfileByAuthor[activeAuthor.value] || topicProfileByAuthor['代表团']
-)
+const normalizeAuthorName = (name) =>
+  String(name || '')
+    .replace(/[\s\u3000]+/g, ' ')
+    .trim()
+
+const activeAuthor = computed(() => normalizeAuthorName(route.query.author || ''))
+const normalizedProfileMap = Object.entries(topicProfileByAuthor).reduce((acc, [key, value]) => {
+  acc[normalizeAuthorName(key)] = value
+  return acc
+}, {})
+const createFallbackProfile = (name) => ({
+  name: name || '作者',
+  subtitle: '',
+  titles: ['暂无作者简介'],
+})
+const authorProfile = computed(() => {
+  const key = activeAuthor.value
+  if (!key) return topicProfileByAuthor['代表团'] || createFallbackProfile('代表团')
+  return topicProfileByAuthor[key] || normalizedProfileMap[key] || createFallbackProfile(key)
+})
 
 const authorTopics = computed(() => {
-  const list = topicListByYear[activeYear.value] || []
-  const filtered = list.filter((item) => item.author === activeAuthor.value)
-  return filtered.length > 0 ? filtered : list
+  if (!activeAuthor.value) return []
+  const allTopics = Object.entries(topicListByYear).flatMap(([year, list]) =>
+    (list || []).map((item) => ({
+      ...item,
+      year: String(year),
+    }))
+  )
+  return allTopics.filter((item) => normalizeAuthorName(item.author) === activeAuthor.value)
 })
 </script>
 
@@ -70,8 +89,9 @@ const authorTopics = computed(() => {
           :style="{ backgroundImage: `url(${dialogTop})` }"
         >
           <h3 class="author-topic-card__title">{{ topic.title }}</h3>
-          <p class="author-topic-card__meta">{{ topic.date }} {{ topic.source }}</p>
+          <!-- <p class="author-topic-card__meta">{{ topic.year }}年</p> -->
         </article>
+        <p v-if="authorTopics.length === 0" class="author-empty">暂无该作者相关议题</p>
       </section>
     </main>
     <Tabbar />
@@ -262,5 +282,13 @@ const authorTopics = computed(() => {
   font-size: 16px;
   color: #5cfdfe;
   white-space: nowrap;
+}
+
+.author-empty {
+  margin: 32px auto 0;
+  width: min(92%, 500px);
+  text-align: center;
+  color: rgba(210, 240, 255, 0.9);
+  font-size: 16px;
 }
 </style>

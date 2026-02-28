@@ -15,6 +15,7 @@ const isAutoScrollPaused = ref(false)
 
 const AUTO_SCROLL_SPEED = 0.1
 const AUTO_SCROLL_RESUME_DELAY = 2500
+const normalizeAuthorName = (name) => String(name || '').replace(/[\s\u3000]+/g, ' ').trim()
 
 let rafId = 0
 let resumeTimer = 0
@@ -57,12 +58,13 @@ const handleCardLink = (card) => {
 }
 
 const goAuthorDetail = (card) => {
-  if (!card?.author) return
+  const author = normalizeAuthorName(card?.author)
+  if (!author) return
   router.push({
     name: 'topicAuthor',
     query: {
       year: activeYear.value,
-      author: card.author,
+      author,
     },
   })
 }

@@ -180,7 +180,7 @@ const getWobbleStyle = () => {
               @click="handleCardClick(card)"
               @keydown.enter.prevent="handleCardClick(card)"
             >
-              <p class="detail-card__content">“{{ card.content }}”</p>
+              <p class="detail-card__content">{{ card.content }}</p>
 
               <!-- <div class="detail-card__footer">
                 <button
