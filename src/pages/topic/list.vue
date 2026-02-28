@@ -21,7 +21,13 @@ let resumeTimer = 0
 let autoScrollPos = 0
 
 const activeYear = computed(() => String(route.query.year || '2025'))
-const displayList = computed(() => topicListByYear[activeYear.value] || topicListByYear['2025'])
+const activeTopicKey = computed(() => String(route.query.topic || '').trim())
+const displayList = computed(() => {
+  const yearList = topicListByYear[activeYear.value] || topicListByYear['2025'] || []
+  if (!activeTopicKey.value) return yearList
+
+  return yearList.filter((item) => item.topicKey === activeTopicKey.value)
+})
 const cityName = computed(() => route.query.cityName)
 const scrollList = computed(() => {
   const origin = displayList.value
@@ -51,6 +57,7 @@ const handleCardLink = (card) => {
 }
 
 const goAuthorDetail = (card) => {
+  if (!card?.author) return
   router.push({
     name: 'topicAuthor',
     query: {
@@ -127,8 +134,8 @@ onUnmounted(() => {
         >
           <h3 class="list-card__title">{{ card.title }}</h3>
           <div class="list-card__meta">
-            <span class="list-card__source">{{ card.date }} {{ card.source }}</span>
             <button
+              v-if="card.author"
               type="button"
               class="list-card__author-btn"
               @click.stop="goAuthorDetail(card)"
@@ -217,7 +224,7 @@ onUnmounted(() => {
   margin-top: 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
 }
 

@@ -13,9 +13,11 @@ import openingVideo from '@/assets/video/test_video.mp4'
 
 const router = useRouter()
 const showVideo = ref(true)
+const showHome = ref(false)
 const videoOpacity = ref(1)
 
 const handleVideoEnded = () => {
+  showHome.value = true
   showVideo.value = false
 }
 
@@ -25,7 +27,7 @@ const handleTimeUpdate = (e) => {
 
   if (duration > 0) {
     const timeLeft = duration - currentTime
-    // Start fading out in the last 1.5 seconds
+    // Start fading out in the last 0.5 second
     if (timeLeft <= 0.5) {
       videoOpacity.value = Math.max(0, timeLeft / 0.5)
     } else {
@@ -40,33 +42,40 @@ const handleEnter = () => {
 </script>
 
 <template>
-  <div v-if="showVideo" class="opening-video" :style="{ opacity: videoOpacity }">
-    <H5VideoPlayer
-      :src="openingVideo"
-      :autoplay="true"
-      :controls="false"
-      :muted="true"
-      fill-mode="cover"
-      @ended="handleVideoEnded"
-      @timeupdate="handleTimeUpdate"
-    />
-  </div>
-  <main class="landing-page" :style="{ backgroundImage: `url(${bgImage})` }">
-    <section class="landing-page__stage">
-      <div class="landing-page__logo">
-        <img class="landing-page__logo_01" :src="logo_01" alt="Top-left logo" />
-        <img class="landing-page__logo_02" :src="logo_02" alt="Top-left logo" />
-        <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
+  <transition name="video-fade">
+    <div v-if="showVideo" class="opening-video" :style="{ opacity: videoOpacity }">
+      <div class="opening-video__player">
+        <H5VideoPlayer
+          :src="openingVideo"
+          :autoplay="true"
+          :controls="false"
+          :muted="true"
+          fill-mode="contain"
+          @ended="handleVideoEnded"
+          @timeupdate="handleTimeUpdate"
+        />
       </div>
-      <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
+    </div>
+  </transition>
 
-      <img class="landing-page__year2026" :src="year_2026" aria-label="2026 image" />
+  <transition name="home-reveal">
+    <main v-if="showHome" class="landing-page" :style="{ backgroundImage: `url(${bgImage})` }">
+      <section class="landing-page__stage">
+        <div class="landing-page__logo">
+          <img class="landing-page__logo_01" :src="logo_01" alt="Top-left logo" />
+          <img class="landing-page__logo_02" :src="logo_02" alt="Top-left logo" />
+          <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
+        </div>
+        <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
 
-      <button class="landing-page__enter" type="button" @click="handleEnter">
-        <img :src="enterButtonImage" alt="Enter button placeholder" />
-      </button>
-    </section>
-  </main>
+        <img class="landing-page__year2026" :src="year_2026" aria-label="2026 image" />
+
+        <button class="landing-page__enter" type="button" @click="handleEnter">
+          <img :src="enterButtonImage" alt="Enter button placeholder" />
+        </button>
+      </section>
+    </main>
+  </transition>
 </template>
 
 <style scoped>
@@ -225,5 +234,39 @@ const handleEnter = () => {
   inset: 0;
   z-index: 999;
   background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.opening-video__player {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100vw, calc(100vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  max-height: 100vh;
+  transform: translate(-50%, -50%);
+}
+
+.video-fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.video-fade-leave-to {
+  opacity: 0;
+}
+
+.home-reveal-enter-active {
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.8s ease;
+}
+
+.home-reveal-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(1.02);
+  filter: blur(8px);
 }
 </style>

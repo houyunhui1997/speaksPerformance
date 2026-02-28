@@ -23,6 +23,7 @@ const frameBySize = {
 const RADIUS = 160
 const FOCAL_LENGTH = 400
 const BASE_SPEED = 0.003
+const DRAG_THRESHOLD = 8
 const router = useRouter()
 const tags = ref([])
 let animationId = null
@@ -30,6 +31,9 @@ let speedX = BASE_SPEED
 let speedY = 0
 let isDragging = false
 let lastY = 0
+let startX = 0
+let startY = 0
+let shouldBlockClick = false
 
 // 初始化逻辑保持不变...
 const initTags = () => {
@@ -90,6 +94,9 @@ const onTouchStart = (e) => {
   isDragging = true
   const touch = e.touches ? e.touches[0] : e
   lastY = touch.clientY
+  startX = touch.clientX
+  startY = touch.clientY
+  shouldBlockClick = false
   speedX = 0
 }
 
@@ -97,9 +104,14 @@ const onTouchMove = (e) => {
   if (!isDragging) return
   const touch = e.touches ? e.touches[0] : e
   const deltaY = touch.clientY - lastY
+  const moveX = Math.abs(touch.clientX - startX)
+  const moveY = Math.abs(touch.clientY - startY)
   speedX = -deltaY * 0.005
+  if (moveX > DRAG_THRESHOLD || moveY > DRAG_THRESHOLD) {
+    shouldBlockClick = true
+    e.preventDefault()
+  }
   lastY = touch.clientY
-  e.preventDefault()
 }
 
 const onTouchEnd = () => {
@@ -108,9 +120,23 @@ const onTouchEnd = () => {
 
 const getCardFrame = (item) => frameBySize[item.size] || topicCardMd
 const handleTopicClick = (item) => {
+  if (shouldBlockClick) {
+    shouldBlockClick = false
+    return
+  }
   router.push({
     name: 'topicDetail',
-    query: { topic: item.key },
+    query: { year: '2025' },
+  })
+}
+const handleTopicTouchEnd = (item) => {
+  if (shouldBlockClick) {
+    shouldBlockClick = false
+    return
+  }
+  router.push({
+    name: 'topicDetail',
+    query: { year: '2025' },
   })
 }
 onMounted(() => {
@@ -147,10 +173,14 @@ onUnmounted(() => {
           :class="`topic-item--${item.size}`"
           :style="item.style"
           @click="handleTopicClick(item)"
+          @touchend.stop.prevent="handleTopicTouchEnd(item)"
           @keydown.enter.prevent="handleTopicClick(item)"
         >
           <img class="topic-item__frame" :src="getCardFrame(item)" alt="" />
-          <span class="topic-item__text">{{ item.label }}</span>
+          <span class="topic-item__text">
+            {{ item.label }}
+            <span class="topic-item__num-placeholder">{{ item.num ?? '00' }}</span>
+          </span>
         </article>
       </section>
     </main>
@@ -221,12 +251,20 @@ onUnmounted(() => {
 
 .topic-item__text {
   position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
   z-index: 2;
   color: #fff;
   font-weight: bold;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
   font-size: 14px;
+}
+
+.topic-item__num-placeholder {
+  font-size: 0.85em;
+  opacity: 0.9;
 }
 
 /* --- 3. 新增 Wide 样式的 CSS --- */

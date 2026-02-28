@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/topic-detail-bg.png'
@@ -12,10 +12,47 @@ import contentRightTop from '@/assets/topic/content-right-top.png'
 import contentRightBottom from '@/assets/topic/content-right-bottom.png'
 import contentLeftTop from '@/assets/topic/content-left-top.png'
 import contentLeftBottom from '@/assets/topic/content-left-bottom.png'
-import { topicDetailByYear, topicYearTabs } from '@/pages/topic/mock'
+import { topicDetailByYear, topicSphereList, topicYearTabs } from '@/pages/topic/mock'
 
-const activeYear = ref('2025')
+const DEFAULT_YEAR = '2025'
+const route = useRoute()
 const router = useRouter()
+const normalizeYear = (year) => {
+  const nextYear = String(year || DEFAULT_YEAR)
+  return topicYearTabs.includes(nextYear) ? nextYear : DEFAULT_YEAR
+}
+const selectedTopicKey = computed(() => String(route.query.topic || '').trim())
+const getFirstYearByTopic = (topicKey) => {
+  if (!topicKey) return ''
+  return (
+    topicYearTabs.find((year) => {
+      const list = topicDetailByYear[year] || []
+      return list.some((item) => item.topicKey === topicKey)
+    }) || ''
+  )
+}
+const initialYear = route.query.year
+  ? normalizeYear(route.query.year)
+  : getFirstYearByTopic(selectedTopicKey.value) || DEFAULT_YEAR
+const activeYear = ref(initialYear)
+const selectedTopic = computed(
+  () => topicSphereList.find((item) => item.key === selectedTopicKey.value) || null
+)
+
+watch(
+  () => route.query.year,
+  (year) => {
+    activeYear.value = normalizeYear(year)
+  }
+)
+watch(
+  () => route.query.topic,
+  (topic) => {
+    if (route.query.year) return
+    const matchedYear = getFirstYearByTopic(String(topic || '').trim())
+    if (matchedYear) activeYear.value = matchedYear
+  }
+)
 
 // 根据气泡尾巴的位置，避让相应的区域
 const bubbleConfigs = [
@@ -44,8 +81,8 @@ const bubbleConfigs = [
     type: 'right-bottom',
     img: contentRightBottom,
     // 尾巴在右下：下边距和右边距要大
-    padding: '30px 60px 20px 25px',
-    tagStyle: { bottom: '25px', left: '20px', textAlign: 'right' },
+    padding: '30px 60px 40px 25px',
+    tagStyle: { bottom: '10px', left: '20px', textAlign: 'right' },
   },
 ]
 
@@ -68,12 +105,16 @@ const processItem = (item, index) => {
 
 const displayList = computed(() => {
   const origin = topicDetailByYear[activeYear.value] || []
-  if (origin.length === 0) return []
+  const filtered = selectedTopicKey.value
+    ? origin.filter((item) => item.topicKey === selectedTopicKey.value)
+    : origin
 
-  let list = [...origin]
+  let list = [...filtered]
+  if (list.length === 0) return []
+
   // 确保列表足够长
   while (list.length < 8) {
-    list = [...list, ...origin]
+    list = [...list, ...list]
   }
   return [...list, ...list].map((item, index) => processItem(item, index))
 })
@@ -82,28 +123,13 @@ const setYear = (year) => {
   activeYear.value = year
 }
 
-const handleCardClick = () => {
+const handleCardClick = (card) => {
+  const topicKey = card?.topicKey || selectedTopicKey.value || undefined
   router.push({
     name: 'topicList',
-    query: { year: activeYear.value },
-  })
-}
-
-const normalizeAuthorName = (author) => {
-  const text = String(author || '').trim()
-  const tail = text.split(/\s+/).pop() || text
-  return tail.replace(/^[^A-Za-z0-9\u4e00-\u9fa5]+/, '')
-}
-
-const goAuthorDetail = (card) => {
-  const authorName = normalizeAuthorName(card?.author)
-  if (!authorName) return
-
-  router.push({
-    name: 'topicAuthor',
     query: {
       year: activeYear.value,
-      author: authorName,
+      topic: topicKey,
     },
   })
 }
@@ -151,12 +177,12 @@ const getWobbleStyle = () => {
               }"
               role="button"
               tabindex="0"
-              @click="handleCardClick"
-              @keydown.enter.prevent="handleCardClick"
+              @click="handleCardClick(card)"
+              @keydown.enter.prevent="handleCardClick(card)"
             >
               <p class="detail-card__content">“{{ card.content }}”</p>
 
-              <div class="detail-card__footer">
+              <!-- <div class="detail-card__footer">
                 <button
                   type="button"
                   class="detail-card__author-btn"
@@ -165,10 +191,17 @@ const getWobbleStyle = () => {
                 >
                   <span class="detail-card__author">{{ card.author }}</span>
                 </button>
-              </div>
+              </div> -->
 
               <!-- Tag 绝对定位 -->
-              <div class="detail-card__tag-abs" :style="card.tagStyle">
+              <div
+                class="detail-card__tag-abs"
+                :style="card.tagStyle"
+                role="button"
+                tabindex="0"
+                @click.stop="handleCardClick(card)"
+                @keydown.enter.stop.prevent="handleCardClick(card)"
+              >
                 {{ card.tag }}
               </div>
             </div>
@@ -372,6 +405,7 @@ const getWobbleStyle = () => {
   white-space: nowrap;
   backdrop-filter: blur(2px);
   z-index: 2;
+  cursor: pointer;
 }
 
 .topic-detail__city {
