@@ -7,7 +7,7 @@ import enterButtonImage from '@/assets/homepage/button.png'
 import logo_01 from '@/assets/homepage/logo1.png'
 import logo_02 from '@/assets/homepage/logo2.png'
 import logo_03 from '@/assets/homepage/logo3.png'
-import year_2026 from '@/assets/homepage/2026.png'
+// import year_2026 from '@/assets/homepage/2026.png'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import openingVideo from '@/assets/video/index.mp4'
 

@@ -305,9 +305,9 @@ const authorProfile = computed(() => {
   font-weight: 700;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   display: -webkit-box;
-  -webkit-box-orient: vertical;
+  /* -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-  line-clamp: 3;
+  line-clamp: 3; */
   overflow: hidden;
 }
 
