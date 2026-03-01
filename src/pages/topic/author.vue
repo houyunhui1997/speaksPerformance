@@ -229,7 +229,7 @@ const authorProfile = computed(() => {
 .author-info-content {
   position: relative;
   z-index: 2;
-  padding: 10px 12px 14px;
+  padding: 10px 35px 14px;
 }
 
 .author-name {
@@ -274,7 +274,7 @@ const authorProfile = computed(() => {
   left: 0;
   right: 0;
   top: 320px;
-  bottom: 140px;
+  bottom: 70px;
   overflow-y: auto;
   padding: 0 20px 20px;
   box-sizing: border-box;
