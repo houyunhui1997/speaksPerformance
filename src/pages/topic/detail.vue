@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -60,45 +60,65 @@ const bubbleConfigs = [
     type: 'left-top',
     img: contentLeftTop,
     // 尾巴在左上：上边距和左边距要大
-    padding: '35px 15px 45px 60px',
+    padding: '15px 15px 0px 60px',
     tagStyle: { bottom: '20px', right: '25px', textAlign: 'right' },
+    boxWidth: 'min(88%, 480px)',
   },
   {
     type: 'left-bottom',
     img: contentLeftBottom,
     // 尾巴在左下：下边距和左边距要大
-    padding: '40px 25px 55px 70px',
-    tagStyle: { top: '10px', left: '70px' },
+    padding: '50px 20px 20px 60px',
+    tagStyle: { top: '20px', left: '60px' },
+    boxWidth: 'min(88%, 430px)',
+    minHeight: '128px',
   },
   {
     type: 'right-top',
     img: contentRightTop,
     // 尾巴在右上：上边距和右边距要大
-    padding: '45px 40px 35px 25px',
-    tagStyle: { bottom: '20px', left: '25px', textAlign: 'left' },
+    padding: '80px 40px 35px 25px',
+    tagStyle: { top: '50px', right: '36px', textAlign: 'left' },
+    boxWidth: 'min(92%, 500px)',
+    minHeight: '184px',
   },
   {
     type: 'right-bottom',
     img: contentRightBottom,
     // 尾巴在右下：下边距和右边距要大
-    padding: '30px 60px 40px 25px',
-    tagStyle: { bottom: '10px', left: '20px', textAlign: 'right' },
+    padding: '20px 60px 40px 25px',
+    tagStyle: { bottom: '20px', left: '20px', textAlign: 'right' },
+    boxWidth: 'min(86%, 470px)',
+    minHeight: '142px',
   },
 ]
 
+const bubbleOrder = [2, 1, 3, 0]
+
+const stackOffsets = [
+  { shiftX: 0, overlap: 0 },
+  { shiftX: 8, overlap: -28 },
+  { shiftX: -6, overlap: -10 },
+  { shiftX: 0, overlap: 11 },
+]
+
 const processItem = (item, index) => {
+  const bubble = bubbleConfigs[bubbleOrder[index % bubbleOrder.length]]
+  const stack = stackOffsets[index % stackOffsets.length]
   return {
     ...item,
     uniqueKey: `${item.id}-${index}`,
-    bgImg: contentRightBottom,
-    tagStyle: bubbleConfigs[3].tagStyle,
+    bgImg: bubble.img,
+    tagStyle: bubble.tagStyle,
     cardStyle: {
-      padding: bubbleConfigs[3].padding,
-      ...getWobbleStyle(index),
+      padding: bubble.padding,
+      minHeight: bubble.minHeight,
     },
     boxStyle: {
-      margin: '10px auto 0',
-      zIndex: index,
+      margin: `${index === 0 ? 10 : stack.overlap}px auto 0`,
+      width: bubble.boxWidth,
+      transform: `translateX(${stack.shiftX}px)`,
+      zIndex: index === 1 ? index + 2 : index,
     },
   }
 }
@@ -108,15 +128,7 @@ const displayList = computed(() => {
   const filtered = selectedTopicKey.value
     ? origin.filter((item) => item.topicKey === selectedTopicKey.value)
     : origin
-
-  let list = [...filtered]
-  if (list.length === 0) return []
-
-  // 确保列表足够长
-  while (list.length < 8) {
-    list = [...list, ...list]
-  }
-  return [...list, ...list].map((item, index) => processItem(item, index))
+  return filtered.map((item, index) => processItem(item, index))
 })
 
 const setYear = (year) => {
@@ -132,13 +144,6 @@ const handleCardClick = (card) => {
       topic: topicKey,
     },
   })
-}
-
-const getWobbleStyle = () => {
-  return {
-    animationDelay: `-${Math.random() * 5}s`,
-    animationDuration: `${4 + Math.random() * 3}s`,
-  }
 }
 </script>
 
@@ -181,17 +186,6 @@ const getWobbleStyle = () => {
               @keydown.enter.prevent="handleCardClick(card)"
             >
               <p class="detail-card__content">{{ card.content }}</p>
-
-              <!-- <div class="detail-card__footer">
-                <button
-                  type="button"
-                  class="detail-card__author-btn"
-                  @click.stop="goAuthorDetail(card)"
-                  @keydown.enter.stop.prevent="goAuthorDetail(card)"
-                >
-                  <span class="detail-card__author">{{ card.author }}</span>
-                </button>
-              </div> -->
 
               <!-- Tag 绝对定位 -->
               <div
@@ -310,26 +304,20 @@ const getWobbleStyle = () => {
   top: 76px;
   left: 0;
   right: 0;
-  bottom: calc(100px + env(safe-area-inset-bottom));
-  overflow: hidden;
+  bottom: calc(130px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   z-index: 10;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    black 15%,
-    black 85%,
-    transparent 100%
-  );
 }
 
 .scroll-track {
   display: flex;
   flex-direction: column;
-  padding: 40px 16px;
+  padding: 0 16px 36px;
   gap: 0;
-  /* 增加动画时长，让滚动更平缓，方便阅读 */
-  animation: scrollUp 55s linear infinite;
   width: 100%;
   box-sizing: border-box;
 }
@@ -339,6 +327,7 @@ const getWobbleStyle = () => {
   width: min(92%, 500px);
   position: relative;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 /* --- 卡片本体 --- */
@@ -346,7 +335,7 @@ const getWobbleStyle = () => {
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 140px;
+  min-height: 130px;
   box-sizing: border-box; /* 确保 padding 包含在宽度内 */
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -398,12 +387,10 @@ const getWobbleStyle = () => {
   padding: 2px 10px;
   font-size: 12px;
   color: #ffffff;
-  background: rgba(18, 56, 150, 0.6);
-  border: 1px solid rgba(127, 215, 255, 0.5);
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-image: url('../../assets/topic/tag-bg.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   white-space: nowrap;
-  backdrop-filter: blur(2px);
   z-index: 2;
   cursor: pointer;
 }
@@ -424,14 +411,5 @@ const getWobbleStyle = () => {
   width: clamp(78px, 21vw, 140px);
   z-index: 13;
   pointer-events: none;
-}
-
-@keyframes scrollUp {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-50%);
-  }
 }
 </style>

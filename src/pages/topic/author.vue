@@ -98,11 +98,7 @@ const authorProfile = computed(() => {
             <div class="author-info-content">
               <h2 class="author-name">{{ authorProfile.name }}</h2>
               <div v-if="authorProfile.bioList && authorProfile.bioList.length">
-                <p
-                  v-for="(line, idx) in authorProfile.bioList"
-                  :key="idx"
-                  class="author-subtitle"
-                >
+                <p v-for="(line, idx) in authorProfile.bioList" :key="idx" class="author-subtitle">
                   {{ line }}
                 </p>
               </div>
@@ -160,7 +156,7 @@ const authorProfile = computed(() => {
 
 .author-profile-wrap {
   position: absolute;
-  top: 30px;
+  top: 16px;
   left: 0;
   right: 0;
   padding: 0 20px;
@@ -186,26 +182,26 @@ const authorProfile = computed(() => {
 
 .author-photo-box {
   width: 140px;
-  height: 180px;
+  height: 140px;
   margin: 0 auto;
   position: relative;
 }
 
 .author-photo {
   position: absolute;
-  left: 0;
+  left: 24px;
   top: 10px;
   z-index: 3;
-  width: 100%;
-  height: 100%;
+  width: 70%;
+  height: 90%;
   object-fit: cover;
 }
 
 .author-info-panel {
   position: relative;
   width: min(100%, 260px);
-  min-height: 206px;
-  margin: 10px auto 0;
+  min-height: 120px;
+  margin: 8px auto 0;
 }
 
 .author-info-layer {
@@ -218,33 +214,34 @@ const authorProfile = computed(() => {
 .author-info-layer--dark {
   z-index: 0;
   position: absolute;
-  top: -120px;
-  right: -20px;
-  left: 20px;
+  top: -110px;
+  left: 40px;
 }
 
 .author-info-layer--light {
   z-index: 1;
   position: absolute;
   top: -90px;
+  left: 26px;
+  right: 20px;
 }
 
 .author-info-content {
   position: relative;
   z-index: 2;
-  padding: 30px 12px 14px;
+  padding: 10px 12px 14px;
 }
 
 .author-name {
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1.1;
   color: #f8fcff;
 }
 
 .author-subtitle {
   margin: 3px 0 0;
-  font-size: 16px;
+  font-size: 14px;
   color: #f8fcff;
 }
 
@@ -276,10 +273,10 @@ const authorProfile = computed(() => {
   position: absolute;
   left: 0;
   right: 0;
-  top: 450px;
-  bottom: calc(95px + env(safe-area-inset-bottom));
+  top: 320px;
+  bottom: 140px;
   overflow-y: auto;
-  padding: 0 12px 20px;
+  padding: 0 20px 20px;
   box-sizing: border-box;
   scrollbar-width: none;
 }
@@ -293,9 +290,8 @@ const authorProfile = computed(() => {
   display: flex;
   flex-direction: column;
   width: min(92%, 500px);
-  min-height: 152px;
   margin: 0 auto 14px;
-  padding: 40px 18px 20px;
+  padding: 30px 18px 20px;
   box-sizing: border-box;
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -303,7 +299,7 @@ const authorProfile = computed(() => {
 
 .author-topic-card__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.4;
   color: #f2f9ff;
   font-weight: 700;

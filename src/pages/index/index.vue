@@ -85,9 +85,6 @@ const handleEnter = () => {
           <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
         </div>
         <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
-
-        <img class="landing-page__year2026" :src="year_2026" aria-label="2026 image" />
-
         <button class="landing-page__enter" type="button" @click="handleEnter">
           <img :src="enterButtonImage" alt="Enter button placeholder" />
         </button>
@@ -162,30 +159,10 @@ const handleEnter = () => {
   animation: glitch-skew 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite both;
 }
 
-.landing-page__year2026 {
-  position: absolute;
-  left: 50%;
-  bottom: 27.5%;
-  width: 52%;
-  aspect-ratio: 2.5 / 1;
-  transform: translateX(-50%);
-  /* 动画设置：先执行入场(1s)，紧接着执行悬浮(3s无限循环) */
-  animation:
-    enter2026 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards,
-    floatGlow 4s ease-in-out infinite 1s; /* 延迟1s等待入场结束 */
-  opacity: 0; /* 初始隐藏，由动画控制显示 */
-}
-
 .landing-page__enter img {
   display: block;
   width: 100%;
   height: auto;
-}
-@media screen and (max-width: 390px) {
-  .landing-page__year2026 {
-    bottom: 22.2%;
-    width: 54%;
-  }
 }
 @keyframes glitch-skew {
   0%,
@@ -217,33 +194,6 @@ const handleEnter = () => {
   40%,
   90% {
     transform: translateX(-50%);
-  }
-}
-/* 入场动画：从下往上 + 模糊变清晰 */
-@keyframes enter2026 {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(40px) scale(0.9);
-    filter: blur(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-/* 持续动画：上下悬浮 + 投影呼吸 */
-@keyframes floatGlow {
-  0%,
-  100% {
-    transform: translateX(-50%) translateY(0);
-    filter: drop-shadow(0 0 0px rgba(138, 200, 255, 0));
-  }
-  50% {
-    transform: translateX(-50%) translateY(-10px);
-    /* 如果图片是透明PNG，drop-shadow会产生很好的发光效果 */
-    filter: drop-shadow(0 0 15px rgba(100, 220, 255, 0.6));
   }
 }
 
