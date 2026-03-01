@@ -409,7 +409,7 @@ export const topicListByYear = {
     {
       id: '24-four-007',
       title: '关于发挥国企产业链链长作用，培植核心领域产业联盟，打造中国式技术标准和输出能力的建议',
-      author: '四川代表团  李慧',
+      author: '李慧',
       link: '',
       topicKey: 'four',
     },
@@ -1138,7 +1138,7 @@ export const topicListByYear = {
     {
       id: '24-four-111',
       title: '关于简化我国氦气回收利用程序的建议',
-      author: '四川代表团 李慧',
+      author: '李慧',
       link: '',
       topicKey: 'four',
     },
@@ -1441,7 +1441,7 @@ export const topicListByYear = {
     {
       id: '24-law-018',
       title: '关于完善“笑气”社会治理问题的建议',
-      author: '四川代表团 李慧',
+      author: '李慧',
       link: '',
       topicKey: 'law',
     },

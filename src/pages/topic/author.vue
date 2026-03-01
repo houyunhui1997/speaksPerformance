@@ -4,11 +4,13 @@ import { useRoute } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/list-bg.png'
-import Author from '@/assets/topic/author.png'
+import defaultAvatar from '@/assets/topic/defaultAvatar.jpg'
 import dialogTop from '@/assets/topic/dialog-top.png'
 import authorIcon01 from '@/assets/topic/author-icon-01.png'
 import authorIcon02 from '@/assets/topic/author-icon-02.png'
 import { topicListByYear } from '@/pages/topic/mock'
+import { authorBios } from '@/api/author-bio'
+
 const route = useRoute()
 
 const normalizeAuthorName = (name) =>
@@ -17,6 +19,22 @@ const normalizeAuthorName = (name) =>
     .trim()
 
 const activeAuthor = computed(() => normalizeAuthorName(route.query.author || ''))
+
+// 动态匹配头像
+const avatarModules = import.meta.glob('../../assets/avatar/*.{png,jpg,jpeg}', { eager: true })
+
+const authorAvatar = computed(() => {
+  const name = activeAuthor.value
+  if (!name) return defaultAvatar
+
+  const matchedPath = Object.keys(avatarModules).find((path) => {
+    const fileName = path.split('/').pop()
+    const baseName = fileName.split('.')[0]
+    return baseName === name
+  })
+
+  return matchedPath ? avatarModules[matchedPath].default : defaultAvatar
+})
 
 const authorTopics = computed(() => {
   if (!activeAuthor.value) return []
@@ -37,10 +55,23 @@ const authorProfile = computed(() => {
   const name = activeAuthor.value || '作者'
   const total = authorTopics.value.length
   const yearsText = authorYears.value.length > 0 ? authorYears.value.join('、') : '暂无'
+  const bioRaw = authorBios[name]
+
+  let bioList = []
+  if (bioRaw) {
+    bioList = bioRaw
+      .split(/[，,]/)
+      .map((s) => s.trim())
+      .filter((s) => s)
+  } else {
+    bioList = ['暂无职务数据']
+  }
+
   return {
     name,
     subtitle: `共 ${total} 件议题`,
     titles: [`覆盖年份：${yearsText}`],
+    bioList,
   }
 })
 </script>
@@ -51,7 +82,7 @@ const authorProfile = computed(() => {
       <section class="author-profile-wrap">
         <div class="author-profile">
           <div class="author-photo-box">
-            <img class="author-photo" :src="Author" :alt="authorProfile.name" />
+            <img class="author-photo" :src="authorAvatar" :alt="authorProfile.name" />
           </div>
 
           <div class="author-info-panel">
@@ -66,7 +97,15 @@ const authorProfile = computed(() => {
 
             <div class="author-info-content">
               <h2 class="author-name">{{ authorProfile.name }}</h2>
-              <!-- <p class="author-subtitle">{{ authorProfile.subtitle }}</p> -->
+              <div v-if="authorProfile.bioList && authorProfile.bioList.length">
+                <p
+                  v-for="(line, idx) in authorProfile.bioList"
+                  :key="idx"
+                  class="author-subtitle"
+                >
+                  {{ line }}
+                </p>
+              </div>
 
               <!-- <div class="author-title-list">
                 <p

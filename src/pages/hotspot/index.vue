@@ -5,7 +5,7 @@ import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import bgImage from '@/assets/hotspot/hotspot_bg.png'
 import video from '@/assets/hotspot/video.png'
 import videoBg from '@/assets/hotspot/video-bg.png'
-import localVideo from '@/assets/video/test_video.mp4'
+import localVideo from '@/assets/video/index.mp4'
 
 const hotspotSeedCards = [
   { id: 1, size: 'sm', tone: 'olive', thumb: video, url: localVideo },
