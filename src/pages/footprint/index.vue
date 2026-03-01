@@ -34,11 +34,11 @@ const riverPathPointMode = 'ratio'
 const riverStart = { x: 0.79, y: 0.93 }
 
 const riverSegments = [
-  { x: -0.18, y: -0.1, heading: -60, moveLen: 0.68 },
-  { x: 0.7, y: -0.41, heading: -90, moveLen: 0.3 },
-  { x: -0.1, y: -0.3, heading: -40, moveLen: 0.09 },
-  { x: 0.6, y: -0.2, heading: -90, moveLen: 0.15 },
-  { x: 0.2, y: -0.4, heading: -90, moveLen: 0.32 },
+  { x: -0.18, y: -0.1, heading: -60, moveLen: 0.5, curve: 0.1 },
+  { x: 0.05, y: -0.41, heading: -90, moveLen: 0.31, curve: -0.45 },
+  { x: 0.48, y: -0.41, heading: -90, moveLen: 0.2, curve: 0.15 },
+  { x: 0.05, y: -0.41, heading: -90, moveLen: 0.12, curve: 0.85 },
+  { x: 0.8, y: -4, heading: -90, moveLen: 0.12, curve: 0 },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
@@ -93,6 +93,10 @@ const buildAnchorsFromSegments = (start, segments) => {
         : typeof seg.angle === 'number'
           ? seg.angle
           : null
+
+    // 将 curve 参数附加到当前起点（即上一段的终点）
+    pts[pts.length - 1].curve = seg.curve || 0
+
     pts.push(heading === null ? next : { ...next, heading })
 
     cur = next
@@ -114,10 +118,42 @@ const buildPolylinePoints = (anchors) => {
     const startS = i === 0 ? 0 : 1
     const heading =
       typeof a.heading === 'number' ? a.heading : typeof a.angle === 'number' ? a.angle : null
-    for (let s = startS; s < steps; s += 1) {
-      const t = s / steps
-      const p = { x: a.x + dx * t, y: a.y + dy * t }
-      pts.push(heading === null ? p : { ...p, heading })
+
+    const curve = a.curve || 0
+
+    // 如果有曲线参数，使用二次贝塞尔曲线
+    if (Math.abs(curve) > 0.001) {
+      // 在曲线模式下，强制忽略固定的 heading，让箭头跟随曲线切线方向，实现丝滑转向
+      const curveHeading = null 
+
+      const midX = (a.x + b.x) / 2
+      const midY = (a.y + b.y) / 2
+      // 法向量 (-dy, dx)
+      const normX = -dy / dist
+      const normY = dx / dist
+      // 控制点
+      const cpX = midX + normX * curve * dist
+      const cpY = midY + normY * curve * dist
+
+      for (let s = startS; s < steps; s += 1) {
+        const t = s / steps
+        const t2 = t * t
+        const one_t = 1 - t
+        const one_t2 = one_t * one_t
+
+        const px = one_t2 * a.x + 2 * one_t * t * cpX + t2 * b.x
+        const py = one_t2 * a.y + 2 * one_t * t * cpY + t2 * b.y
+
+        const p = { x: px, y: py }
+        pts.push(curveHeading === null ? p : { ...p, heading: curveHeading })
+      }
+    } else {
+      // 线性插值
+      for (let s = startS; s < steps; s += 1) {
+        const t = s / steps
+        const p = { x: a.x + dx * t, y: a.y + dy * t }
+        pts.push(heading === null ? p : { ...p, heading })
+      }
     }
   }
   const last = anchors[anchors.length - 1]
@@ -157,7 +193,7 @@ const riverPathPoints = computed(() =>
 const riverImagePoints = computed(() => downsamplePoints(riverPathPoints.value, turnStride))
 
 const arrowAngleOffset = 140
-const durationMs = 15000
+const durationMs = 6000
 const progress = ref(0)
 
 const cities = getCities()
@@ -255,11 +291,13 @@ const hashToUnit = (str) => {
 const rectIntersects = (a, b) => !(a.r <= b.l || a.l >= b.r || a.b <= b.t || a.t >= b.b)
 
 const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH) => {
-  const pad = Math.max(6, boxH * 0.14)
+  const pad = Math.max(4, boxH * 0.1) // 减小一点间距，让排版更紧凑
   const minX = boxW / 2 + pad
   const maxX = canvasW - boxW / 2 - pad
-  const minY = boxH / 2 + pad
-  const maxY = canvasH - boxH / 2 - pad
+  // 顶部留出 20% 空间 (原为 35%)
+  const minY = canvasH * 0.20 + boxH / 2 + pad
+  // 底部留出 20% 空间 (即最大 Y 坐标限制在 80% 高度)
+  const maxY = canvasH * 0.8 - boxH / 2 - pad
 
   const clampX = (v) => clamp(v, minX, maxX)
   const clampY = (v) => clamp(v, minY, maxY)
@@ -267,28 +305,37 @@ const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH) =>
   const tryAt = (x, y) => {
     const cx = clampX(x)
     const cy = clampY(y)
+    // 碰撞检测矩形
     const rect = {
-      l: cx - boxW / 2 - pad,
-      r: cx + boxW / 2 + pad,
-      t: cy - boxH / 2 - pad,
-      b: cy + boxH / 2 + pad,
+      l: cx - boxW / 2, // 碰撞检测不再包含额外的 pad，允许标签紧挨着
+      r: cx + boxW / 2,
+      t: cy - boxH / 2,
+      b: cy + boxH / 2,
     }
+    // 稍微扩大一点点 rect 用于检测，避免完全贴合
+    const hitTestRect = {
+      l: rect.l - pad,
+      r: rect.r + pad,
+      t: rect.t - pad,
+      b: rect.b + pad
+    }
+
     for (const p of placed) {
-      if (rectIntersects(rect, p)) return null
+      if (rectIntersects(hitTestRect, p)) return null
     }
-    return { x: cx, y: cy, rect }
+    return { x: cx, y: cy, rect: hitTestRect } // 返回包含 pad 的 rect 以供后续检测
   }
 
   const initial = tryAt(baseX, baseY)
   if (initial) return initial
 
-  const step = Math.max(boxH * 0.75, 18)
+  const step = Math.max(boxH * 0.6, 12) // 减小搜索步长，增加搜索密度
   const rot = seed * Math.PI * 2
   const dir = seed > 0.5 ? 1 : -1
 
-  for (let ring = 1; ring <= 10; ring += 1) {
+  for (let ring = 1; ring <= 20; ring += 1) { // 增加搜索圈数
     const radius = step * ring
-    const samples = clamp(6 + ring * 2, 8, 22)
+    const samples = clamp(6 + ring * 3, 8, 30) // 增加采样点
     for (let k = 0; k < samples; k += 1) {
       const a = rot + dir * ((k * Math.PI * 2) / samples)
       const attempt = tryAt(baseX + Math.cos(a) * radius, baseY + Math.sin(a) * radius)
@@ -296,7 +343,19 @@ const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH) =>
     }
   }
 
-  return { x: clampX(baseX), y: clampY(baseY), rect: { l: 0, r: 0, t: 0, b: 0 } }
+  // 即使没找到位置，也要返回一个有效的 rect，防止后续标签叠在它上面
+  const finalX = clampX(baseX)
+  const finalY = clampY(baseY)
+  return { 
+    x: finalX, 
+    y: finalY, 
+    rect: { 
+      l: finalX - boxW / 2 - pad, 
+      r: finalX + boxW / 2 + pad, 
+      t: finalY - boxH / 2 - pad, 
+      b: finalY + boxH / 2 + pad 
+    } 
+  }
 }
 
 const drawFrame = (t, loopIndex, lastAngle) => {
@@ -333,7 +392,8 @@ const drawFrame = (t, loopIndex, lastAngle) => {
 
   const arrowSize = clamp(width * 0.085, 44, 92)
   const arrowOpacity = smoothstep(0.02, 0.08, t) * (1 - smoothstep(0.92, 0.98, t))
-  const angle = lerpAngle(lastAngle, point.angle, 0.22)
+  // 减小插值系数，让转向更平滑（从 0.22 改为 0.08）
+  const angle = lerpAngle(lastAngle, point.angle, 0.08)
 
   ctx.save()
   ctx.globalAlpha = arrowOpacity
@@ -343,7 +403,8 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   ctx.restore()
 
   const nearThreshold = clamp(width * 0.16, 110, 210)
-  const fontSize = clamp(width * 0.034, 14, 26)
+  // 缩小字体大小，从 0.034 -> 0.028，最小值 14 -> 12
+  const fontSize = clamp(width * 0.028, 12, 24)
   const paddingX = fontSize * 0.95
   const minWidth = fontSize * 3.8
 
@@ -503,6 +564,26 @@ const drawFrame = (t, loopIndex, lastAngle) => {
     ctx.restore()
   }
 
+  // --- DEBUG: 绘制红色测试点 ---
+  // 绘制路径关键节点（段落端点），方便调试路径
+  // const debugAnchors = buildAnchorsFromSegments(riverStart, riverSegments)
+  // ctx.save()
+  // ctx.fillStyle = 'red'
+  // for (const pt of debugAnchors) {
+  //   const ax = pt.x * scale + dx
+  //   const ay = pt.y * scale + dy
+  //   ctx.beginPath()
+  //   ctx.arc(ax, ay, 4, 0, Math.PI * 2)
+  //   ctx.fill()
+  // }
+  
+  // // 绘制当前箭头位置
+  // ctx.beginPath()
+  // ctx.arc(x, y, 4, 0, Math.PI * 2)
+  // ctx.fill()
+  // ctx.restore()
+  // ---------------------------
+
   return angle
 }
 
@@ -511,12 +592,24 @@ let lastAngle = 0
 const tick = (now) => {
   if (!startAt) startAt = now
   const raw = (now - startAt) / durationMs
-  const loopIndex = Math.floor(raw)
-  const t = raw - loopIndex
-  currentLoopIndex = loopIndex
-  progress.value = t
-  lastAngle = drawFrame(t, loopIndex, lastAngle)
-  rafId = requestAnimationFrame(tick)
+  // const loopIndex = Math.floor(raw)
+  // const t = raw - loopIndex
+  // currentLoopIndex = loopIndex
+  // progress.value = t
+  // lastAngle = drawFrame(t, loopIndex, lastAngle)
+  // rafId = requestAnimationFrame(tick)
+
+  if (raw <= 1) {
+    const t = raw
+    currentLoopIndex = 0
+    progress.value = t
+    lastAngle = drawFrame(t, 0, lastAngle)
+    rafId = requestAnimationFrame(tick)
+  } else {
+    // 动画结束，保持最后一帧
+    progress.value = 1
+    drawFrame(1, 0, lastAngle)
+  }
 }
 
 const loadImage = (src) =>
