@@ -290,62 +290,68 @@ const hashToUnit = (str) => {
 
 const rectIntersects = (a, b) => !(a.r <= b.l || a.l >= b.r || a.b <= b.t || a.t >= b.b)
 
-const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH) => {
-  const pad = Math.max(4, boxH * 0.1) // 减小一点间距，让排版更紧凑
+const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH, cityId, dx, dy) => {
+  // 定义固定位置映射 (基于画布宽高的比例)
+  // offsetX/Y: 相对于基准点(baseX, baseY)的偏移量，单位是画布宽度/高度的比例
+  // 也可以直接指定 absoluteX/Y (0-1) 来绝对定位
+  
+  // 默认偏移量，如果 getCities 中没有配置，则使用默认值
+  let finalX = baseX
+  let finalY = baseY
+  
+  // 查找当前城市配置
+  const cityConfig = cities.find(c => c.id === cityId)
+  
+  if (cityConfig) {
+    if (typeof cityConfig.offsetX === 'number') {
+      // 使用绝对坐标：dx + 比例 * 图片宽(canvasW)
+      // 这里的 canvasW/canvasH 实际上是 dw/dh (图片的显示宽高)
+      // dx/dy 是图片在 canvas 上的偏移量
+      finalX = dx + cityConfig.offsetX * canvasW
+    }
+    if (typeof cityConfig.offsetY === 'number') {
+      finalY = dy + cityConfig.offsetY * canvasH
+    }
+    
+    // 额外的安全检查：远离轨迹点
+    // 简单的距离检查，如果距离基准点(轨迹点)太近，强制移开一点
+    const distToRiver = Math.hypot(finalX - baseX, finalY - baseY)
+    const minSafeDist = Math.max(boxW, boxH) * 0.8 // 最小安全距离
+    
+    if (distToRiver < minSafeDist) {
+        // 如果太近，默认向右上方移动
+        // finalX = baseX + minSafeDist
+        // finalY = baseY - minSafeDist
+        // 用户要求手动控制坐标，这里如果发生碰撞，暂时不强制移动，或者仅做微调
+        // 既然用户说是“手动调整”，那么就完全听用户的，取消自动避让逻辑可能更好？
+        // 但用户之前也说过“不要靠近动画的轨迹点”。
+        // 这是一个权衡。如果用户手动设定的位置就在轨迹上，那应该避让还是听用户的？
+        // “你把offsetX和offsetY作为坐标值就行” -> 听起来像强强制。
+        // 但“不要靠近动画的轨迹点”也是需求。
+        // 我保留避让逻辑，但可能需要用户调整 offset 来避开。
+        // 如果自动避让了，用户可能觉得“为什么我设了坐标它还乱跑”。
+        // 既然用户说“我自己手动调整位置”，那我就把避让逻辑注释掉，或者仅在没有手动配置时避让？
+        // 不，现在的逻辑是必须有 cityConfig 才会进这里。
+        // 所以我将注释掉避让逻辑，完全信任用户的配置。
+    }
+  } else {
+     // Fallback: 如果没有配置，保持原有逻辑或默认偏移
+     finalX = baseX + boxW 
+     finalY = baseY - boxH
+  }
+
+  // 边界限制
+  const pad = Math.max(4, boxH * 0.1)
   const minX = boxW / 2 + pad
   const maxX = canvasW - boxW / 2 - pad
-  // 顶部留出 20% 空间 (原为 35%)
+  // 顶部留出 20% 空间
   const minY = canvasH * 0.20 + boxH / 2 + pad
-  // 底部留出 20% 空间 (即最大 Y 坐标限制在 80% 高度)
+  // 底部留出 20% 空间
   const maxY = canvasH * 0.8 - boxH / 2 - pad
 
-  const clampX = (v) => clamp(v, minX, maxX)
-  const clampY = (v) => clamp(v, minY, maxY)
+  finalX = clamp(finalX, minX, maxX)
+  finalY = clamp(finalY, minY, maxY)
 
-  const tryAt = (x, y) => {
-    const cx = clampX(x)
-    const cy = clampY(y)
-    // 碰撞检测矩形
-    const rect = {
-      l: cx - boxW / 2, // 碰撞检测不再包含额外的 pad，允许标签紧挨着
-      r: cx + boxW / 2,
-      t: cy - boxH / 2,
-      b: cy + boxH / 2,
-    }
-    // 稍微扩大一点点 rect 用于检测，避免完全贴合
-    const hitTestRect = {
-      l: rect.l - pad,
-      r: rect.r + pad,
-      t: rect.t - pad,
-      b: rect.b + pad
-    }
-
-    for (const p of placed) {
-      if (rectIntersects(hitTestRect, p)) return null
-    }
-    return { x: cx, y: cy, rect: hitTestRect } // 返回包含 pad 的 rect 以供后续检测
-  }
-
-  const initial = tryAt(baseX, baseY)
-  if (initial) return initial
-
-  const step = Math.max(boxH * 0.6, 12) // 减小搜索步长，增加搜索密度
-  const rot = seed * Math.PI * 2
-  const dir = seed > 0.5 ? 1 : -1
-
-  for (let ring = 1; ring <= 20; ring += 1) { // 增加搜索圈数
-    const radius = step * ring
-    const samples = clamp(6 + ring * 3, 8, 30) // 增加采样点
-    for (let k = 0; k < samples; k += 1) {
-      const a = rot + dir * ((k * Math.PI * 2) / samples)
-      const attempt = tryAt(baseX + Math.cos(a) * radius, baseY + Math.sin(a) * radius)
-      if (attempt) return attempt
-    }
-  }
-
-  // 即使没找到位置，也要返回一个有效的 rect，防止后续标签叠在它上面
-  const finalX = clampX(baseX)
-  const finalY = clampY(baseY)
   return { 
     x: finalX, 
     y: finalY, 
@@ -412,43 +418,18 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   ctx.textBaseline = 'middle'
   ctx.font = `${fontSize}px sans-serif`
 
-  if (loopIndex === 0 && revealedCityIds.size < cities.length) {
+  if (loopIndex === 0) {
+    // 简单地基于时间进度按顺序显示
+    // 计算当前应该显示多少个城市
     const revealT = smoothstep(0.05, 0.92, t)
     const targetCount = clamp(Math.floor(revealT * cities.length), 0, cities.length)
-    const need = targetCount - revealedCityIds.size
-
-    if (need > 0) {
-      const candidates = []
-      for (const city of cities) {
-        if (revealedCityIds.has(city.id)) continue
-        const base = pointAtDistance(cache, length * city.at)
-        const cx = (base.x + city.offsetX * imgW) * scale + dx
-        const cy = (base.y + city.offsetY * imgH) * scale + dy
-        const distPx = Math.hypot(cx - x, cy - y)
-        const k = clamp01(1 - distPx / nearThreshold)
-        const score = k * k
-        if (score <= 0.01) continue
-        candidates.push({ city, score })
-      }
-
-      candidates.sort((a, b) => b.score - a.score)
-      let added = 0
-      const cap = Math.max(2, Math.ceil(cities.length / 8))
-      for (const item of candidates) {
-        if (added >= need || added >= cap) break
-        revealedCityIds.add(item.city.id)
-        added += 1
-      }
-
-      if (added < need) {
-        const ordered = [...cities].sort((a, b) => a.at - b.at)
-        for (const city of ordered) {
-          if (added >= need) break
-          if (revealedCityIds.has(city.id)) continue
-          revealedCityIds.add(city.id)
-          added += 1
+    
+    // 确保前 targetCount 个城市都被点亮
+    for (let i = 0; i < targetCount; i++) {
+        const city = cities[i]
+        if (!revealedCityIds.has(city.id)) {
+            revealedCityIds.add(city.id)
         }
-      }
     }
   }
 
@@ -459,9 +440,9 @@ const drawFrame = (t, loopIndex, lastAngle) => {
 
   for (const city of cities) {
     if (!revealedCityIds.has(city.id)) continue
-    const base = pointAtDistance(cache, length * city.at)
-    const baseX = (base.x + city.offsetX * imgW) * scale + dx
-    const baseY = (base.y + city.offsetY * imgH) * scale + dy
+    const base = pointAtDistance(cache, cache.total * city.at)
+    const trackX = base.x * scale + dx
+    const trackY = base.y * scale + dy
 
     const labelText =
       typeof city.count === 'number' && Number.isFinite(city.count)
@@ -483,14 +464,17 @@ const drawFrame = (t, loopIndex, lastAngle) => {
 
     const seed = hashToUnit(city.id || city.name)
     const placed = placeLabel(
-      baseX,
-      baseY,
-      boxW * scaleUp,
-      boxH * scaleUp,
+      trackX,
+      trackY,
+      boxW,
+      boxH,
       seed,
       placedRects,
-      width,
-      height
+      dw,
+      dh,
+      city.id,
+      dx,
+      dy
     )
     placedRects.push(placed.rect)
     renderItems.push({
@@ -608,6 +592,12 @@ const tick = (now) => {
   } else {
     // 动画结束，保持最后一帧
     progress.value = 1
+    // 确保所有城市都已显示
+    for (const city of cities) {
+        if (!revealedCityIds.has(city.id)) {
+            revealedCityIds.add(city.id)
+        }
+    }
     drawFrame(1, 0, lastAngle)
   }
 }

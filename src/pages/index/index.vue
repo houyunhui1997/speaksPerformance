@@ -7,7 +7,7 @@ import enterButtonImage from '@/assets/homepage/button.png'
 import logo_01 from '@/assets/homepage/logo1.png'
 import logo_02 from '@/assets/homepage/logo2.png'
 import logo_03 from '@/assets/homepage/logo3.png'
-// import year_2026 from '@/assets/homepage/2026.png'
+import year_2026 from '@/assets/homepage/2026.png'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import openingVideo from '@/assets/video/index.mp4'
 
@@ -146,6 +146,7 @@ const handleEnter = () => {
           <img class="landing-page__logo_03" :src="logo_03" alt="Top-left logo" />
         </div>
         <img class="landing-page__title" :src="titleImage" alt="Title placeholder" />
+        <img class="year-element" :src="year_2026" alt="2026" />
         <button class="landing-page__enter" type="button" @click="handleEnter">
           <img :src="enterButtonImage" alt="Enter button placeholder" />
         </button>
@@ -166,7 +167,7 @@ const handleEnter = () => {
   justify-content: center;
   background-repeat: no-repeat;
   background-position: center top;
-  background-size: cover;
+  background-size: 100% 100%;
 }
 
 .landing-page__stage {
@@ -205,6 +206,25 @@ const handleEnter = () => {
   left: 50%;
   width: 78%;
   transform: translateX(-50%);
+}
+
+.year-element {
+  position: absolute;
+  bottom: 27%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: auto;
+  animation: year-spin 6s linear infinite;
+}
+
+@keyframes year-spin {
+  0% {
+    transform: perspective(1000px) translateX(-50%) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(1000px) translateX(-50%) rotateY(-360deg);
+  }
 }
 
 .landing-page__enter {
