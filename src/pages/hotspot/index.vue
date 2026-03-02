@@ -21,6 +21,7 @@ const hotspotSeedCards = [
 const hotspotSphereRef = ref(null)
 const hotspotCards = ref([])
 const activeVideoCard = ref(null)
+const wasBgmPlaying = ref(false)
 
 const RADIUS = 130
 const VERTICAL_RADIUS = 108
@@ -127,6 +128,16 @@ const onPointerEnd = () => {
 
 const openVideo = (card) => {
   if (!card?.url) return
+
+  const bgm = globalThis.__SPEAKS_PERF_BGM__
+  if (bgm && typeof bgm.getAudio === 'function' && typeof bgm.pause === 'function') {
+    const audio = bgm.getAudio()
+    wasBgmPlaying.value = audio && !audio.paused
+    bgm.pause()
+  } else {
+    wasBgmPlaying.value = false
+  }
+
   activeVideoCard.value = card
   document.body.style.overflow = 'hidden'
 }
@@ -134,6 +145,13 @@ const openVideo = (card) => {
 const closeVideo = () => {
   activeVideoCard.value = null
   document.body.style.overflow = ''
+
+  if (wasBgmPlaying.value) {
+    const bgm = globalThis.__SPEAKS_PERF_BGM__
+    if (bgm && typeof bgm.play === 'function') {
+      bgm.play()
+    }
+  }
 }
 
 onMounted(() => {
@@ -166,6 +184,13 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', onPointerEnd)
   window.removeEventListener('touchend', onPointerEnd)
   document.body.style.overflow = ''
+
+  if (activeVideoCard.value && wasBgmPlaying.value) {
+    const bgm = globalThis.__SPEAKS_PERF_BGM__
+    if (bgm && typeof bgm.play === 'function') {
+      bgm.play()
+    }
+  }
 })
 </script>
 

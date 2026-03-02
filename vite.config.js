@@ -12,6 +12,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    assetsDir: 'images',
+  },
   server: {
     port: 3001, // 想要的端口
     host: true,
