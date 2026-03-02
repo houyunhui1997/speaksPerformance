@@ -50,10 +50,25 @@ const showCover = ref(true)
 // 静默预加载逻辑
 const preloadAssets = () => {
   const assets = [
-    fpArrow, fpBg, fpText, fpJuxing, fpDidian,
-    hsBg, hsVideoThumb, hsVideoBg,
-    tpBg, tpCardMd, tpCardXl, tpCardLg, tpCardSm, tpCardXs,
-    authListBg, authDefaultAvatar, authDialogTop, authIcon01, authIcon02
+    fpArrow,
+    fpBg,
+    fpText,
+    fpJuxing,
+    fpDidian,
+    hsBg,
+    hsVideoThumb,
+    hsVideoBg,
+    tpBg,
+    tpCardMd,
+    tpCardXl,
+    tpCardLg,
+    tpCardSm,
+    tpCardXs,
+    authListBg,
+    authDefaultAvatar,
+    authDialogTop,
+    authIcon01,
+    authIcon02,
   ]
 
   const load = () => {
@@ -82,6 +97,11 @@ onMounted(() => {
 const handleVideoEnded = () => {
   showHome.value = true
   showVideo.value = false
+
+  const bgm = globalThis.__SPEAKS_PERF_BGM__
+  if (bgm && typeof bgm.play === 'function') {
+    bgm.play()
+  }
 }
 
 const handlePlay = () => {

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
@@ -74,12 +74,65 @@ const authorProfile = computed(() => {
     bioList,
   }
 })
+
+const pageRef = ref(null)
+const profileWrapRef = ref(null)
+const topicListTop = ref(320)
+
+const updateTopicListTop = () => {
+  const pageEl = pageRef.value
+  const profileEl = profileWrapRef.value
+  if (!pageEl || !profileEl) return
+
+  const pageRect = pageEl.getBoundingClientRect()
+  const profileRect = profileEl.getBoundingClientRect()
+  const bottomInPage = profileRect.bottom - pageRect.top
+  const nextTop = Math.ceil(bottomInPage + 12)
+
+  topicListTop.value = Math.max(320, nextTop)
+}
+
+let resizeObserver = null
+
+onMounted(async () => {
+  await nextTick()
+  updateTopicListTop()
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', updateTopicListTop, { passive: true })
+  }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => updateTopicListTop())
+    if (profileWrapRef.value) resizeObserver.observe(profileWrapRef.value)
+    if (pageRef.value) resizeObserver.observe(pageRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateTopicListTop)
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+})
+
+const bioKey = computed(() => (authorProfile.value.bioList || []).join('\n'))
+watch(
+  () => [activeAuthor.value, bioKey.value, authorTopics.value.length],
+  async () => {
+    await nextTick()
+    updateTopicListTop()
+  }
+)
 </script>
 
 <template>
   <div class="page">
-    <main class="author-page" :style="{ backgroundImage: `url(${bgImage})` }">
-      <section class="author-profile-wrap">
+    <main ref="pageRef" class="author-page" :style="{ backgroundImage: `url(${bgImage})` }">
+      <section ref="profileWrapRef" class="author-profile-wrap">
         <div class="author-profile">
           <div class="author-photo-box">
             <img class="author-photo" :src="authorAvatar" :alt="authorProfile.name" />
@@ -117,7 +170,7 @@ const authorProfile = computed(() => {
         </div>
       </section>
 
-      <section class="author-topic-list">
+      <section class="author-topic-list" :style="{ top: `${topicListTop}px` }">
         <article
           v-for="(topic, index) in authorTopics"
           :key="topic.id"

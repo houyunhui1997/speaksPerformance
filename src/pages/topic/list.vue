@@ -15,7 +15,10 @@ const isAutoScrollPaused = ref(false)
 
 const AUTO_SCROLL_SPEED = 0.1
 const AUTO_SCROLL_RESUME_DELAY = 2500
-const normalizeAuthorName = (name) => String(name || '').replace(/[\s\u3000]+/g, ' ').trim()
+const normalizeAuthorName = (name) =>
+  String(name || '')
+    .replace(/[\s\u3000]+/g, ' ')
+    .trim()
 
 let rafId = 0
 let resumeTimer = 0

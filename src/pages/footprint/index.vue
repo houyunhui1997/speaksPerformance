@@ -124,7 +124,7 @@ const buildPolylinePoints = (anchors) => {
     // 如果有曲线参数，使用二次贝塞尔曲线
     if (Math.abs(curve) > 0.001) {
       // 在曲线模式下，强制忽略固定的 heading，让箭头跟随曲线切线方向，实现丝滑转向
-      const curveHeading = null 
+      const curveHeading = null
 
       const midX = (a.x + b.x) / 2
       const midY = (a.y + b.y) / 2
@@ -294,14 +294,14 @@ const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH, ci
   // 定义固定位置映射 (基于画布宽高的比例)
   // offsetX/Y: 相对于基准点(baseX, baseY)的偏移量，单位是画布宽度/高度的比例
   // 也可以直接指定 absoluteX/Y (0-1) 来绝对定位
-  
+
   // 默认偏移量，如果 getCities 中没有配置，则使用默认值
   let finalX = baseX
   let finalY = baseY
-  
+
   // 查找当前城市配置
-  const cityConfig = cities.find(c => c.id === cityId)
-  
+  const cityConfig = cities.find((c) => c.id === cityId)
+
   if (cityConfig) {
     if (typeof cityConfig.offsetX === 'number') {
       // 使用绝对坐标：dx + 比例 * 图片宽(canvasW)
@@ -312,32 +312,32 @@ const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH, ci
     if (typeof cityConfig.offsetY === 'number') {
       finalY = dy + cityConfig.offsetY * canvasH
     }
-    
+
     // 额外的安全检查：远离轨迹点
     // 简单的距离检查，如果距离基准点(轨迹点)太近，强制移开一点
     const distToRiver = Math.hypot(finalX - baseX, finalY - baseY)
     const minSafeDist = Math.max(boxW, boxH) * 0.8 // 最小安全距离
-    
+
     if (distToRiver < minSafeDist) {
-        // 如果太近，默认向右上方移动
-        // finalX = baseX + minSafeDist
-        // finalY = baseY - minSafeDist
-        // 用户要求手动控制坐标，这里如果发生碰撞，暂时不强制移动，或者仅做微调
-        // 既然用户说是“手动调整”，那么就完全听用户的，取消自动避让逻辑可能更好？
-        // 但用户之前也说过“不要靠近动画的轨迹点”。
-        // 这是一个权衡。如果用户手动设定的位置就在轨迹上，那应该避让还是听用户的？
-        // “你把offsetX和offsetY作为坐标值就行” -> 听起来像强强制。
-        // 但“不要靠近动画的轨迹点”也是需求。
-        // 我保留避让逻辑，但可能需要用户调整 offset 来避开。
-        // 如果自动避让了，用户可能觉得“为什么我设了坐标它还乱跑”。
-        // 既然用户说“我自己手动调整位置”，那我就把避让逻辑注释掉，或者仅在没有手动配置时避让？
-        // 不，现在的逻辑是必须有 cityConfig 才会进这里。
-        // 所以我将注释掉避让逻辑，完全信任用户的配置。
+      // 如果太近，默认向右上方移动
+      // finalX = baseX + minSafeDist
+      // finalY = baseY - minSafeDist
+      // 用户要求手动控制坐标，这里如果发生碰撞，暂时不强制移动，或者仅做微调
+      // 既然用户说是“手动调整”，那么就完全听用户的，取消自动避让逻辑可能更好？
+      // 但用户之前也说过“不要靠近动画的轨迹点”。
+      // 这是一个权衡。如果用户手动设定的位置就在轨迹上，那应该避让还是听用户的？
+      // “你把offsetX和offsetY作为坐标值就行” -> 听起来像强强制。
+      // 但“不要靠近动画的轨迹点”也是需求。
+      // 我保留避让逻辑，但可能需要用户调整 offset 来避开。
+      // 如果自动避让了，用户可能觉得“为什么我设了坐标它还乱跑”。
+      // 既然用户说“我自己手动调整位置”，那我就把避让逻辑注释掉，或者仅在没有手动配置时避让？
+      // 不，现在的逻辑是必须有 cityConfig 才会进这里。
+      // 所以我将注释掉避让逻辑，完全信任用户的配置。
     }
   } else {
-     // Fallback: 如果没有配置，保持原有逻辑或默认偏移
-     finalX = baseX + boxW 
-     finalY = baseY - boxH
+    // Fallback: 如果没有配置，保持原有逻辑或默认偏移
+    finalX = baseX + boxW
+    finalY = baseY - boxH
   }
 
   // 边界限制
@@ -345,22 +345,22 @@ const placeLabel = (baseX, baseY, boxW, boxH, seed, placed, canvasW, canvasH, ci
   const minX = boxW / 2 + pad
   const maxX = canvasW - boxW / 2 - pad
   // 顶部留出 20% 空间
-  const minY = canvasH * 0.20 + boxH / 2 + pad
+  const minY = canvasH * 0.2 + boxH / 2 + pad
   // 底部留出 20% 空间
   const maxY = canvasH * 0.8 - boxH / 2 - pad
 
   finalX = clamp(finalX, minX, maxX)
   finalY = clamp(finalY, minY, maxY)
 
-  return { 
-    x: finalX, 
-    y: finalY, 
-    rect: { 
-      l: finalX - boxW / 2 - pad, 
-      r: finalX + boxW / 2 + pad, 
-      t: finalY - boxH / 2 - pad, 
-      b: finalY + boxH / 2 + pad 
-    } 
+  return {
+    x: finalX,
+    y: finalY,
+    rect: {
+      l: finalX - boxW / 2 - pad,
+      r: finalX + boxW / 2 + pad,
+      t: finalY - boxH / 2 - pad,
+      b: finalY + boxH / 2 + pad,
+    },
   }
 }
 
@@ -423,13 +423,13 @@ const drawFrame = (t, loopIndex, lastAngle) => {
     // 计算当前应该显示多少个城市
     const revealT = smoothstep(0.05, 0.92, t)
     const targetCount = clamp(Math.floor(revealT * cities.length), 0, cities.length)
-    
+
     // 确保前 targetCount 个城市都被点亮
     for (let i = 0; i < targetCount; i++) {
-        const city = cities[i]
-        if (!revealedCityIds.has(city.id)) {
-            revealedCityIds.add(city.id)
-        }
+      const city = cities[i]
+      if (!revealedCityIds.has(city.id)) {
+        revealedCityIds.add(city.id)
+      }
     }
   }
 
@@ -560,7 +560,7 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   //   ctx.arc(ax, ay, 4, 0, Math.PI * 2)
   //   ctx.fill()
   // }
-  
+
   // // 绘制当前箭头位置
   // ctx.beginPath()
   // ctx.arc(x, y, 4, 0, Math.PI * 2)
@@ -594,9 +594,9 @@ const tick = (now) => {
     progress.value = 1
     // 确保所有城市都已显示
     for (const city of cities) {
-        if (!revealedCityIds.has(city.id)) {
-            revealedCityIds.add(city.id)
-        }
+      if (!revealedCityIds.has(city.id)) {
+        revealedCityIds.add(city.id)
+      }
     }
     drawFrame(1, 0, lastAngle)
   }

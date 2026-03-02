@@ -549,7 +549,7 @@ export const topicListByYear = {
     {
       id: '24-four-027',
       title: '关于加快工业互联网平台产业发展的建议',
-      author: '柳江代表',
+      author: '柳江',
       link: '',
       topicKey: 'four',
     },
@@ -584,7 +584,7 @@ export const topicListByYear = {
     {
       id: '24-four-032',
       title: '支持四川省自贡市创建国家新型工业化示范区',
-      author: '李慧建议3',
+      author: '李慧',
       link: '',
       topicKey: 'four',
     },
@@ -681,8 +681,8 @@ export const topicListByYear = {
     },
     {
       id: '24-four-046',
-      title: '（柳江代表）关于促进家庭服务机器人产业应用落地的建议',
-      author: '',
+      title: '关于促进家庭服务机器人产业应用落地的建议',
+      author: '柳江',
       link: '',
       topicKey: 'four',
     },
@@ -1736,7 +1736,7 @@ export const topicListByYear = {
     {
       id: '24-plan-030',
       title: '关于支持四川省自贡市创建国家物流枢纽承载城市的建议',
-      author: '四川团 李慧',
+      author: '李慧',
       link: '',
       topicKey: 'plan',
     },
