@@ -10,6 +10,7 @@ import logo_03 from '@/assets/homepage/logo3.png'
 import year_2026 from '@/assets/homepage/2026.png'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import openingVideo from '@/assets/video/index.mp4'
+import skipBtn from '@/assets/homepage/skip.png'
 
 // --- 预加载资源 ---
 // Footprint
@@ -104,6 +105,16 @@ const handleVideoEnded = () => {
   }
 }
 
+const handleSkipVideo = () => {
+  if (!showVideo.value) return
+  if (playerRef.value && typeof playerRef.value.pause === 'function') {
+    playerRef.value.pause()
+  }
+  videoOpacity.value = 1
+  showCover.value = false
+  handleVideoEnded()
+}
+
 const handlePlay = () => {
   showCover.value = false
 }
@@ -154,6 +165,9 @@ const handleEnter = () => {
           <div class="video-cover__play-icon"></div>
         </div>
       </div>
+      <button v-if="!showCover" type="button" class="skip-btn" @click="handleSkipVideo">
+        <img :src="skipBtn" class="skip-btn__img" alt="跳过" />
+      </button>
     </div>
   </transition>
 
@@ -314,6 +328,22 @@ const handleEnter = () => {
   top: 0;
   width: 100%;
   height: 100%;
+}
+
+.skip-btn {
+  position: absolute;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 1000;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.skip-btn .skip-btn__img {
+  display: block;
+  width: 46px;
+  height: auto;
 }
 
 .video-cover {

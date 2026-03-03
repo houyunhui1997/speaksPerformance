@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import Tabbar from '@/compontents/tabbar.vue'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import bgImage from '@/assets/hotspot/hotspot_bg.png'
@@ -7,20 +7,128 @@ import video from '@/assets/hotspot/video.png'
 import videoBg from '@/assets/hotspot/video-bg.png'
 import localVideo from '@/assets/video/index.mp4'
 
+const videoThumbModules = import.meta.glob('../../assets/video/*_video/*.{jpg,jpeg,png,webp}', {
+  eager: true,
+})
+const videoSourceModules = import.meta.glob('../../assets/video/*_video/*.mp4', { eager: true })
+
+const coverExts = ['jpg', 'jpeg', 'png', 'webp']
+
+const toCssSize = (value) => {
+  if (typeof value === 'number') return `${value}px`
+  return value
+}
+
+const getCardThumb = (id, ext) => {
+  const folder = `../../assets/video/${id}_video/`
+  const directExt = ext ? [ext] : []
+  const candidates = [...directExt, ...coverExts].filter(Boolean)
+
+  for (const e of candidates) {
+    const thumbKey = `${folder}${id}.${e}`
+    const mod = videoThumbModules[thumbKey]
+    if (mod?.default) return mod.default
+  }
+
+  return video
+}
+
+const getCardVideo = (id) => {
+  const folder = `../../assets/video/${id}_video/`
+  const videoKey = `${folder}${id}.mp4`
+
+  return videoSourceModules[videoKey]?.default || localVideo
+}
+
 const hotspotSeedCards = [
-  { id: 1, size: 'sm', tone: 'olive', thumb: video, url: localVideo },
-  { id: 2, size: 'lg', tone: 'gold', thumb: video, url: localVideo },
-  { id: 3, size: 'xs', tone: 'rose', thumb: video, url: localVideo },
-  { id: 4, size: 'xl', tone: 'red', thumb: video, url: localVideo },
-  { id: 5, size: 'md', tone: 'cream', thumb: video, url: localVideo },
-  { id: 6, size: 'xs', tone: 'lemon', thumb: video, url: localVideo },
-  { id: 7, size: 'sm', tone: 'mint', thumb: video, url: localVideo },
-  { id: 8, size: 'md', tone: 'scarlet', thumb: video, url: localVideo },
+  {
+    id: 1,
+    size: 'sm',
+    tone: 'olive',
+    kind: 'video',
+    coverId: 1,
+    coverFit: 'cover',
+    coverType: 'jpg',
+    videoId: 1,
+  },
+  {
+    id: 2,
+    size: 'lg',
+    tone: 'gold',
+    kind: 'link',
+    coverId: 2,
+    // coverWidth: 60
+    coverFit: 'contain',
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
+  {
+    id: 3,
+    size: 'xs',
+    tone: 'rose',
+    kind: 'link',
+    coverId: 2,
+    coverFit: 'contain',
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
+  {
+    id: 4,
+    size: 'xl',
+    tone: 'red',
+    kind: 'link',
+    coverId: 2,
+    coverFit: 'contain',
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
+  {
+    id: 5,
+    size: 'md',
+    tone: 'cream',
+    kind: 'link',
+    coverId: 2,
+    coverFit: 'contain',
+
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
+  {
+    id: 6,
+    size: 'xs',
+    tone: 'lemon',
+    kind: 'link',
+    coverId: 2,
+    coverFit: 'contain',
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
+  {
+    id: 7,
+    size: 'sm',
+    tone: 'mint',
+    kind: 'link',
+    coverId: 2,
+    coverFit: 'contain',
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
+  {
+    id: 8,
+    size: 'md',
+    tone: 'scarlet',
+    kind: 'link',
+    coverId: 2,
+    coverFit: 'contain',
+    coverType: 'jpg',
+    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+  },
 ]
 
 const hotspotSphereRef = ref(null)
 const hotspotCards = ref([])
-const activeVideoCard = ref(null)
+const activePopupCard = ref(null)
+const popupPlayerRef = ref(null)
 const wasBgmPlaying = ref(false)
 
 const RADIUS = 130
@@ -51,8 +159,17 @@ const initCards = () => {
     const z = Math.sin(theta) * radiusAtY * RADIUS
     const yPos = y * VERTICAL_RADIUS
 
+    const thumbStyle = {
+      objectFit: item.coverFit || 'cover',
+      width: toCssSize(item.coverWidth) || undefined,
+      height: toCssSize(item.coverHeight) || undefined,
+    }
+
     return {
       ...item,
+      thumb: getCardThumb(item.coverId ?? item.id, item.coverType),
+      thumbStyle,
+      url: item.kind === 'video' ? getCardVideo(item.videoId ?? item.id) : '',
       x,
       y: yPos,
       z,
@@ -126,8 +243,48 @@ const onPointerEnd = () => {
   isDragging = false
 }
 
-const openVideo = (card) => {
-  if (!card?.url) return
+const openExternal = (href) => {
+  if (!href) return
+  const opened = window.open(href, '_blank')
+  if (!opened) window.location.href = href
+}
+
+const enterPopupVideoFullscreen = () => {
+  const player = popupPlayerRef.value?.player?.()
+  if (player) {
+    if (typeof player.getFullscreen === 'function') {
+      player.getFullscreen()
+      return
+    }
+    const fullscreenPlugin =
+      typeof player.getPlugin === 'function' ? player.getPlugin('fullscreen') : null
+    if (fullscreenPlugin && typeof fullscreenPlugin.changeFullScreen === 'function') {
+      fullscreenPlugin.changeFullScreen()
+      return
+    }
+  }
+
+  const panel = document.querySelector('.video-layer__panel')
+  if (panel && typeof panel.requestFullscreen === 'function') {
+    panel.requestFullscreen().catch(() => {})
+  }
+}
+
+const exitPopupVideoFullscreen = () => {
+  const player = popupPlayerRef.value?.player?.()
+  if (player && typeof player.exitFullscreen === 'function') {
+    player.exitFullscreen()
+    return
+  }
+  if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+    document.exitFullscreen().catch(() => {})
+  }
+}
+
+const openPopup = (card) => {
+  if (!card) return
+  if (card.kind === 'video' && !card.url) return
+  if (card.kind === 'link' && !card.href) return
 
   const bgm = globalThis.__SPEAKS_PERF_BGM__
   if (bgm && typeof bgm.getAudio === 'function' && typeof bgm.pause === 'function') {
@@ -138,12 +295,19 @@ const openVideo = (card) => {
     wasBgmPlaying.value = false
   }
 
-  activeVideoCard.value = card
+  activePopupCard.value = card
   document.body.style.overflow = 'hidden'
+
+  if (card.kind === 'video') {
+    nextTick().then(() => {
+      enterPopupVideoFullscreen()
+    })
+  }
 }
 
-const closeVideo = () => {
-  activeVideoCard.value = null
+const closePopup = () => {
+  exitPopupVideoFullscreen()
+  activePopupCard.value = null
   document.body.style.overflow = ''
 
   if (wasBgmPlaying.value) {
@@ -185,7 +349,7 @@ onUnmounted(() => {
   window.removeEventListener('touchend', onPointerEnd)
   document.body.style.overflow = ''
 
-  if (activeVideoCard.value && wasBgmPlaying.value) {
+  if (activePopupCard.value && wasBgmPlaying.value) {
     const bgm = globalThis.__SPEAKS_PERF_BGM__
     if (bgm && typeof bgm.play === 'function') {
       bgm.play()
@@ -211,45 +375,57 @@ onUnmounted(() => {
               :class="[`hotspot-card--${card.size}`, `hotspot-card--${card.tone}`]"
               role="button"
               tabindex="0"
-              @click.stop="openVideo(card)"
-              @keydown.enter.prevent="openVideo(card)"
+              @click.stop="openPopup(card)"
+              @keydown.enter.prevent="openPopup(card)"
             >
               <div class="hotspot-card__thumb">
-                <video
+                <img
                   class="hotspot-card__video"
-                  :src="`${card.url}#t=0.1`"
-                  muted
-                  preload="metadata"
-                  playsinline
-                ></video>
+                  :src="card.thumb"
+                  :style="card.thumbStyle"
+                  alt=""
+                  loading="lazy"
+                />
               </div>
             </div>
           </article>
         </section>
 
-        <section v-if="activeVideoCard" class="video-layer" @click.self="closeVideo">
+        <section v-if="activePopupCard" class="video-layer" @click.self="closePopup">
           <div class="video-layer__panel">
             <button
               type="button"
               class="video-layer__close"
               aria-label="关闭视频"
-              @click="closeVideo"
+              @click="closePopup"
             ></button>
-            <div class="video-layer__content">
+            <div v-if="activePopupCard.kind === 'video'" class="video-layer__content">
               <H5VideoPlayer
-                :src="activeVideoCard.url"
-                :poster="activeVideoCard.thumb"
+                ref="popupPlayerRef"
+                :src="activePopupCard.url"
+                :poster="activePopupCard.thumb"
                 :autoplay="true"
-                :muted="true"
+                :muted="false"
                 :controls="true"
                 fill-mode="contain"
+                @ready="enterPopupVideoFullscreen"
               />
+            </div>
+            <div v-else class="link-layer">
+              <img class="link-layer__cover" :src="activePopupCard.thumb" alt="" />
+              <button
+                type="button"
+                class="link-layer__open"
+                @click="openExternal(activePopupCard.href)"
+              >
+                打开链接
+              </button>
             </div>
           </div>
         </section>
       </section>
     </main>
-    <Tabbar v-if="!activeVideoCard" />
+    <Tabbar v-if="!activePopupCard" />
   </div>
 </template>
 
@@ -543,5 +719,35 @@ $tower-layouts: (
       transform: translate(-50%, -50%) rotate(-45deg);
     }
   }
+}
+
+.link-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.link-layer__cover {
+  width: min(92vw, 520px);
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.link-layer__open {
+  min-width: 160px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 </style>
