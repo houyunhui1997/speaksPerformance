@@ -106,7 +106,7 @@ const {
   transform: translateX(-50%);
   width: 24%;
   height: auto;
-  /* animation: year-spin 6s linear infinite; */
+  animation: year-spin 6s linear infinite;
 }
 
 @keyframes year-spin {
