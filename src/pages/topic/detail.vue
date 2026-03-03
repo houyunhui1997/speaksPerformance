@@ -304,7 +304,7 @@ const handleCardClick = (card) => {
   top: 76px;
   left: 0;
   right: 0;
-  bottom: calc(130px + env(safe-area-inset-bottom));
+  bottom: calc(180px + env(safe-area-inset-bottom));
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;

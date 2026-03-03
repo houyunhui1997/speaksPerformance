@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import tabbarBg from '@/assets/tabbar/bg.png'
 import huatiActive from '@/assets/tabbar/huati_d.png'
 import huatiInactive from '@/assets/tabbar/huati_x.png'
+import minshengActive from '@/assets/tabbar/minsheng_d.png'
 import minshengInactive from '@/assets/tabbar/minsheng_x.png'
 import redianActive from '@/assets/tabbar/redian_d.png'
 import redianInactive from '@/assets/tabbar/redian_x.png'
@@ -20,7 +21,7 @@ const tabs = [
   {
     key: 'publicOpinion',
     to: '/public-opinion',
-    activeSrc: minshengInactive,
+    activeSrc: minshengActive,
     inactiveSrc: minshengInactive,
   },
 ]
