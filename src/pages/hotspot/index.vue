@@ -131,8 +131,8 @@ const activePopupCard = ref(null)
 const popupPlayerRef = ref(null)
 const wasBgmPlaying = ref(false)
 
-const RADIUS = 130
-const VERTICAL_RADIUS = 108
+const RADIUS = 150
+const VERTICAL_RADIUS = 180
 const FOCAL_LENGTH = 460
 const BASE_SPEED_Y = 0.003
 const BASE_SPEED_X = 0.0008
@@ -530,7 +530,7 @@ $tower-layouts: (
   left: 0;
   right: 0;
   top: 18px;
-  height: 370px;
+  height: 500px;
   z-index: 4;
   perspective: 900px;
   touch-action: none;

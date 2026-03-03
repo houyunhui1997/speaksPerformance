@@ -36,13 +36,12 @@ const cityName = computed(() => route.query.cityName)
 const scrollList = computed(() => {
   const origin = displayList.value
   if (origin.length === 0) return []
-
   let list = [...origin]
-  while (list.length < 8) {
-    list = [...list, ...origin]
-  }
+  // while (list.length < 8) {
+  //   list = [...list, ...origin]
+  // }
 
-  return [...list, ...list].map((item, index) => ({
+  return [...list].map((item, index) => ({
     ...item,
     uniqueKey: `${item.id}-${index}`,
   }))

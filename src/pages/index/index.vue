@@ -46,7 +46,7 @@ const showVideo = ref(true)
 const showHome = ref(false)
 const videoOpacity = ref(1)
 const playerRef = ref(null)
-const showCover = ref(true)
+const showCover = ref(false)
 
 // 静默预加载逻辑
 const preloadAssets = () => {
@@ -144,6 +144,30 @@ const handleTimeUpdate = (e) => {
 const handleEnter = () => {
   router.push('/footprint')
 }
+
+const handlePlayerReady = () => {
+  // 尝试自动播放
+  if (playerRef.value) {
+    // 调用组件暴露的 play 方法
+    const p = playerRef.value.play()
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {
+        // 自动播放失败（通常是因为浏览器策略限制非静音自动播放）
+        // 此时显示手动播放遮罩层
+        showCover.value = true
+      })
+    } else {
+      // 兼容旧浏览器或无法捕获 Promise 的情况
+      // 延时检查播放状态
+      setTimeout(() => {
+        const playerInstance = playerRef.value.player && playerRef.value.player()
+        if (playerInstance && playerInstance.paused) {
+          showCover.value = true
+        }
+      }, 500)
+    }
+  }
+}
 </script>
 
 <template>
@@ -153,10 +177,11 @@ const handleEnter = () => {
         <H5VideoPlayer
           ref="playerRef"
           :src="openingVideo"
-          :autoplay="true"
+          :autoplay="false"
           :controls="false"
           :muted="false"
           fill-mode="fill"
+          @ready="handlePlayerReady"
           @ended="handleVideoEnded"
           @timeupdate="handleTimeUpdate"
           @play="handlePlay"
