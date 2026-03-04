@@ -12,11 +12,11 @@ import skipBtn from '@/assets/homepage/skip.png'
 
 // --- 预加载资源 ---
 // Footprint
-import fpArrow from '@/assets/footprint/arrow.png'
-import fpBg from '@/assets/footprint/bg.png'
-import fpText from '@/assets/footprint/text1.png'
-import fpJuxing from '@/assets/footprint/juxing.png'
-import fpDidian from '@/assets/footprint/didian.png'
+import fpArrow from '@/assets/footprint/h5/arrow.png'
+import fpBg from '@/assets/footprint/h5/bg.png'
+import fpText from '@/assets/footprint/h5/text1.png'
+import fpJuxing from '@/assets/footprint/h5/juxing.png'
+import fpDidian from '@/assets/footprint/h5/didian.png'
 // Hotspot
 import hsBg from '@/assets/hotspot/hotspot_bg.png'
 import hsVideoThumb from '@/assets/hotspot/video.png'
