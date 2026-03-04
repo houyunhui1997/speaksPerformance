@@ -527,22 +527,22 @@ const drawFrame = (t, loopIndex, lastAngle) => {
 
   // --- DEBUG: 绘制红色测试点 ---
   // 绘制路径关键节点（段落端点），方便调试路径
-    const debugAnchors = buildAnchorsFromSegments(riverStart, riverSegments)
-    ctx.save()
-    ctx.fillStyle = 'red'
-    for (const pt of debugAnchors) {
-      const ax = pt.x * scale + dx
-      const ay = pt.y * scale + dy
-      ctx.beginPath()
-      ctx.arc(ax, ay, 4, 0, Math.PI * 2)
-      ctx.fill()
-    }
-
-    // 绘制当前箭头位置
+  const debugAnchors = buildAnchorsFromSegments(riverStart, riverSegments)
+  ctx.save()
+  ctx.fillStyle = 'red'
+  for (const pt of debugAnchors) {
+    const ax = pt.x * scale + dx
+    const ay = pt.y * scale + dy
     ctx.beginPath()
-    ctx.arc(x, y, 4, 0, Math.PI * 2)
+    ctx.arc(ax, ay, 4, 0, Math.PI * 2)
     ctx.fill()
-    ctx.restore()
+  }
+
+  // 绘制当前箭头位置
+  ctx.beginPath()
+  ctx.arc(x, y, 4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
   // ---------------------------
 
   return angle

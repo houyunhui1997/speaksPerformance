@@ -1,5 +1,6 @@
 <script setup>
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { Events } from 'xgplayer'
 import Tabbar from '@/compontents/tabbar.vue'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import bgImage from '@/assets/hotspot/hotspot_bg.png'
@@ -87,21 +88,20 @@ const hotspotSeedCards = [
     size: 'md',
     tone: 'cream',
     kind: 'link',
-    coverId: 2,
+    coverId: 5,
     coverFit: 'contain',
-
-    coverType: 'jpg',
-    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+    coverType: 'png',
+    href: 'https://article.xuexi.cn/articles/index.html?art_id=2673467875447881012&item_id=2673467875447881012&cdn=https%3A%2F%2Fregion-sichuan-resource&reedit_timestamp=1772528626000&study_style_id=video_default&xxqg_jm=dtxuexi%3A%2F%2Fappclient%2Fpage%2Fimmersive_play_v2%3Freco_type%3D1%26itemId%3D2673467875447881012%26cid%3D1156%26immersion_transfer_info%3D%257B%2522shr_info%2522%253A%25221%2522%257D%26study_video_continue%3D0&source=share&share_to=wx_feed',
   },
   {
     id: 6,
     size: 'xs',
     tone: 'lemon',
     kind: 'link',
-    coverId: 2,
+    coverId: 6,
     coverFit: 'contain',
-    coverType: 'jpg',
-    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+    coverType: 'png',
+    href: 'https://mp.weixin.qq.com/s/BXfYQmEuvy5nHxNHtjEzuA',
   },
   {
     id: 7,
@@ -249,32 +249,53 @@ const openExternal = (href) => {
   if (!opened) window.location.href = href
 }
 
-const enterPopupVideoFullscreen = () => {
-  const player = popupPlayerRef.value?.player?.()
-  if (player) {
-    if (typeof player.getFullscreen === 'function') {
-      player.getFullscreen()
-      return
-    }
-    const fullscreenPlugin =
-      typeof player.getPlugin === 'function' ? player.getPlugin('fullscreen') : null
-    if (fullscreenPlugin && typeof fullscreenPlugin.changeFullScreen === 'function') {
-      fullscreenPlugin.changeFullScreen()
-      return
-    }
-  }
+const popupPanelRef = ref(null)
+const isPopupVideoFullscreen = ref(false)
+let popupFullscreenBound = false
 
-  const panel = document.querySelector('.video-layer__panel')
-  if (panel && typeof panel.requestFullscreen === 'function') {
-    panel.requestFullscreen().catch(() => {})
+const bindPopupVideoFullscreen = () => {
+  const player = popupPlayerRef.value?.player?.()
+  if (!player) return
+
+  if (popupFullscreenBound) return
+  popupFullscreenBound = true
+
+  if (typeof player.on === 'function') {
+    player.on(Events.FULLSCREEN_CHANGE, (isFullscreen) => {
+      isPopupVideoFullscreen.value = !!isFullscreen
+    })
   }
 }
 
 const exitPopupVideoFullscreen = () => {
   const player = popupPlayerRef.value?.player?.()
-  if (player && typeof player.exitFullscreen === 'function') {
-    player.exitFullscreen()
-    return
+  if (player) {
+    if (typeof player.exitFullscreen === 'function' && player.fullscreen) {
+      player.exitFullscreen()
+      return
+    }
+
+    if (typeof player.exitCssFullscreen === 'function') {
+      if (player.isCssfullScreen) player.exitCssFullscreen()
+      return
+    }
+
+    const fullscreenPlugin =
+      typeof player.getPlugin === 'function' ? player.getPlugin('fullscreen') : null
+    const toggle =
+      fullscreenPlugin &&
+      (fullscreenPlugin.toggleFullScreen ||
+        fullscreenPlugin.changeFullScreen ||
+        fullscreenPlugin.toggle)
+    if (typeof toggle === 'function' && player.fullscreen) {
+      toggle.call(fullscreenPlugin)
+      return
+    }
+
+    if (typeof player.exitFullscreen === 'function') {
+      player.exitFullscreen()
+      return
+    }
   }
   if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
     document.exitFullscreen().catch(() => {})
@@ -297,18 +318,14 @@ const openPopup = (card) => {
 
   activePopupCard.value = card
   document.body.style.overflow = 'hidden'
-
-  if (card.kind === 'video') {
-    nextTick().then(() => {
-      enterPopupVideoFullscreen()
-    })
-  }
 }
 
 const closePopup = () => {
   exitPopupVideoFullscreen()
   activePopupCard.value = null
   document.body.style.overflow = ''
+  isPopupVideoFullscreen.value = false
+  popupFullscreenBound = false
 
   if (wasBgmPlaying.value) {
     const bgm = globalThis.__SPEAKS_PERF_BGM__
@@ -392,7 +409,7 @@ onUnmounted(() => {
         </section>
 
         <section v-if="activePopupCard" class="video-layer" @click.self="closePopup">
-          <div class="video-layer__panel">
+          <div ref="popupPanelRef" class="video-layer__panel">
             <button
               type="button"
               class="video-layer__close"
@@ -402,13 +419,14 @@ onUnmounted(() => {
             <div v-if="activePopupCard.kind === 'video'" class="video-layer__content">
               <H5VideoPlayer
                 ref="popupPlayerRef"
+                :fullscreen-target="popupPanelRef"
                 :src="activePopupCard.url"
                 :poster="activePopupCard.thumb"
                 :autoplay="true"
                 :muted="false"
                 :controls="true"
                 fill-mode="contain"
-                @ready="enterPopupVideoFullscreen"
+                @ready="bindPopupVideoFullscreen"
               />
             </div>
             <div v-else class="link-layer">
@@ -675,16 +693,15 @@ $tower-layouts: (
     border-radius: 0;
     background: #000;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &__content {
-    position: absolute;
-    left: 50%;
-    top: 50%;
     width: min(100vw, calc(100vh * 16 / 9));
     aspect-ratio: 16 / 9;
     max-height: 100vh;
-    transform: translate(-50%, -50%);
   }
 
   &__close {

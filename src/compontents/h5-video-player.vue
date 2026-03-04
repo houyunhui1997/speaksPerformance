@@ -9,6 +9,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  fullscreenTarget: {
+    type: Object,
+    default: null,
+  },
   poster: {
     type: String,
     default: '',
@@ -39,7 +43,15 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['ready', 'play', 'pause', 'ended', 'error', 'timeupdate'])
+const emit = defineEmits([
+  'ready',
+  'play',
+  'pause',
+  'ended',
+  'error',
+  'timeupdate',
+  'fullscreen-change',
+])
 const rootRef = ref(null)
 let player = null
 
@@ -73,7 +85,8 @@ const createPlayer = async () => {
     muted: props.muted,
     loop: props.loop,
     controls: props.controls,
-    cssFullscreen: true,
+    cssFullscreen: false,
+    fullscreen: props.fullscreenTarget ? { target: props.fullscreenTarget } : undefined,
     videoFillMode: props.fillMode,
     keyShortcut: false,
     isMobileSimulateMode: 'mobile',
@@ -96,6 +109,7 @@ const createPlayer = async () => {
   player.on(Events.ENDED, () => emit('ended'))
   player.on(Events.ERROR, (error) => emit('error', error))
   player.on(Events.TIME_UPDATE, (event) => emit('timeupdate', event))
+  player.on(Events.FULLSCREEN_CHANGE, (isFullscreen) => emit('fullscreen-change', isFullscreen))
 }
 
 defineExpose({
@@ -113,6 +127,13 @@ watch(
 
 watch(
   () => [props.autoplay, props.muted, props.loop, props.controls, props.fillMode],
+  () => {
+    createPlayer()
+  }
+)
+
+watch(
+  () => props.fullscreenTarget,
   () => {
     createPlayer()
   }
