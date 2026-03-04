@@ -360,6 +360,14 @@ $tower-layouts: (
     overflow: hidden;
   }
 
+  &--xs &__thumb {
+    inset: 14px;
+  }
+
+  &--sm &__thumb {
+    inset: 24px;
+  }
+
   &__video {
     width: 100%;
     height: 100%;
