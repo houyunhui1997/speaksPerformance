@@ -1,6 +1,6 @@
 <script setup>
 import Tabbar from '@/compontents/tabbar.vue'
-import bgImage from '@/assets/topic/topic-bg.png'
+import bgImage from '@/assets/topic/h5/topic-bg.png'
 import { useTopicSphere } from './useTopicSphere'
 
 const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } = useTopicSphere({

@@ -1,10 +1,10 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import contentRightTop from '@/assets/topic/content-right-top.png'
-import contentRightBottom from '@/assets/topic/content-right-bottom.png'
-import contentLeftTop from '@/assets/topic/content-left-top.png'
-import contentLeftBottom from '@/assets/topic/content-left-bottom.png'
+import contentRightTop from '@/assets/topic/h5/content-right-top.png'
+import contentRightBottom from '@/assets/topic/h5/content-right-bottom.png'
+import contentLeftTop from '@/assets/topic/h5/content-left-top.png'
+import contentLeftBottom from '@/assets/topic/h5/content-left-bottom.png'
 import { topicDetailByYear, topicSphereList, topicYearTabs } from '@/pages/topic/mock'
 
 const DEFAULT_YEAR = '2025'
@@ -107,7 +107,17 @@ export function useTopicDetail(options = {}) {
   )
 
   const processItem = (item, index) => {
-    const bubble = bubbleConfigs[bubbleOrder[index % bubbleOrder.length]] || bubbleConfigs[0]
+    const bubbleIndex = bubbleOrder[index % bubbleOrder.length]
+    const defaultBubble = DEFAULT_BUBBLE_CONFIGS[bubbleIndex] || DEFAULT_BUBBLE_CONFIGS[0]
+    const customBubble = bubbleConfigs[bubbleIndex] || {}
+    const bubble = {
+      ...defaultBubble,
+      ...customBubble,
+      tagStyle: {
+        ...(defaultBubble.tagStyle || {}),
+        ...(customBubble.tagStyle || {}),
+      },
+    }
     const stack = stackOffsets[index % stackOffsets.length] || { shiftX: 0, overlap: 0 }
 
     return {
@@ -160,4 +170,3 @@ export function useTopicDetail(options = {}) {
     handleCardClick,
   }
 }
-

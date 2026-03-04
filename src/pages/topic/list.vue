@@ -3,9 +3,9 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import Tabbar from '@/compontents/tabbar.vue'
-import bgImage from '@/assets/topic/list-bg.png'
-import dialogRight from '@/assets/topic/dialog-right.png'
-import dialogLeft from '@/assets/topic/dialog-left.png'
+import bgImage from '@/assets/topic/h5/list-bg.png'
+import dialogRight from '@/assets/topic/h5/dialog-right.png'
+import dialogLeft from '@/assets/topic/h5/dialog-left.png'
 import { topicListByYear } from '@/pages/topic/mock'
 
 const route = useRoute()

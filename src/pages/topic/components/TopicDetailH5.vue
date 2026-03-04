@@ -1,10 +1,10 @@
 <script setup>
 import Tabbar from '@/compontents/tabbar.vue'
-import bgImage from '@/assets/topic/topic-detail-bg.png'
-import quoteIcon from '@/assets/topic/topic-detail-left-top.png'
-import cityBottom from '@/assets/topic/topic-detail-bottom.png'
-import cityRight from '@/assets/topic/topic-detail-right-bottom.png'
-import tagBg from '@/assets/topic/tag-bg.png'
+import bgImage from '@/assets/topic/h5/topic-detail-bg.png'
+import quoteIcon from '@/assets/topic/h5/topic-detail-left-top.png'
+import cityBottom from '@/assets/topic/h5/topic-detail-bottom.png'
+import cityRight from '@/assets/topic/h5/topic-detail-right-bottom.png'
+import tagBg from '@/assets/topic/h5/tag-bg.png'
 import { useTopicDetail } from './useTopicDetail'
 
 const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = useTopicDetail()

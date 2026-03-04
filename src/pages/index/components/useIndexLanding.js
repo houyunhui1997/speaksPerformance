@@ -2,13 +2,13 @@
 import { useRouter } from 'vue-router'
 
 import titleImage from '@/assets/homepage/web/title.png'
-import enterButtonImage from '@/assets/homepage/button.png'
-import logo_01 from '@/assets/homepage/logo1.png'
-import logo_02 from '@/assets/homepage/logo2.png'
-import logo_03 from '@/assets/homepage/logo3.png'
-import year_2026 from '@/assets/homepage/2026.png'
+import enterButtonImage from '@/assets/homepage/h5/button.png'
+import logo_01 from '@/assets/homepage/h5/logo1.png'
+import logo_02 from '@/assets/homepage/h5/logo2.png'
+import logo_03 from '@/assets/homepage/h5/logo3.png'
+import year_2026 from '@/assets/homepage/h5/2026.png'
 import openingVideo from '@/assets/video/index.mp4'
-import skipBtn from '@/assets/homepage/skip.png'
+import skipBtn from '@/assets/homepage/h5/skip.png'
 
 // --- 预加载资源 ---
 // Footprint
@@ -22,18 +22,18 @@ import hsBg from '@/assets/hotspot/hotspot_bg.png'
 import hsVideoThumb from '@/assets/hotspot/video.png'
 import hsVideoBg from '@/assets/hotspot/video-bg.png'
 // Topic
-import tpBg from '@/assets/topic/topic-bg.png'
-import tpCardMd from '@/assets/topic/topic-card-md.png'
-import tpCardXl from '@/assets/topic/topic-card-xl.png'
-import tpCardLg from '@/assets/topic/topic-card-lg.png'
-import tpCardSm from '@/assets/topic/topic-card-sm.png'
-import tpCardXs from '@/assets/topic/topic-card-xs.png'
+import tpBg from '@/assets/topic/h5/topic-bg.png'
+import tpCardMd from '@/assets/topic/h5/topic-card-md.png'
+import tpCardXl from '@/assets/topic/h5/topic-card-xl.png'
+import tpCardLg from '@/assets/topic/h5/topic-card-lg.png'
+import tpCardSm from '@/assets/topic/h5/topic-card-sm.png'
+import tpCardXs from '@/assets/topic/h5/topic-card-xs.png'
 // Topic Author
-import authListBg from '@/assets/topic/list-bg.png'
-import authDefaultAvatar from '@/assets/topic/defaultAvatar.jpg'
-import authDialogTop from '@/assets/topic/dialog-top.png'
-import authIcon01 from '@/assets/topic/author-icon-01.png'
-import authIcon02 from '@/assets/topic/author-icon-02.png'
+import authListBg from '@/assets/topic/h5/list-bg.png'
+import authDefaultAvatar from '@/assets/topic/h5/defaultAvatar.jpg'
+import authDialogTop from '@/assets/topic/h5/dialog-top.png'
+import authIcon01 from '@/assets/topic/h5/author-icon-01.png'
+import authIcon02 from '@/assets/topic/h5/author-icon-02.png'
 const preloadList = [
   fpArrow,
   fpBg,

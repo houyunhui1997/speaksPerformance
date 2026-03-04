@@ -1,5 +1,5 @@
 ﻿<script setup>
-import bgImage from '@/assets/homepage/background.png'
+import bgImage from '@/assets/homepage/h5/background.png'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
 import { useIndexLanding } from './useIndexLanding'
 

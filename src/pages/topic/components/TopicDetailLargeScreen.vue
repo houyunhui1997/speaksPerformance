@@ -1,111 +1,170 @@
 <script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/web/topic-detail-bg-web.png'
-import quoteIcon from '@/assets/topic/topic-detail-left-top.png'
-import cityBottom from '@/assets/topic/topic-detail-bottom.png'
-import cityRight from '@/assets/topic/topic-detail-right-bottom.png'
-import tagBg from '@/assets/topic/tag-bg.png'
+import yearTabsBg from '@/assets/topic/web/topic-detail-tabs-web.png'
+import webDialogRight from '@/assets/topic/web/topic-detail-right-web.png'
+import webDialogTopRight from '@/assets/topic/web/topic-detail-top-right-web.png'
+import webDialogBottomRight from '@/assets/topic/web/topic-detail-bottomright-web.png'
+import webQuoteIconTop from '@/assets/topic/web/quote-icon-top-web.png'
+import webQuoteIconBottom from '@/assets/topic/web/quote-icon-bottom-web.png'
+import tagBg from '@/assets/topic/h5/tag-bg.png'
 import { useTopicDetail } from './useTopicDetail'
 
 const largeBubbleConfigs = [
   {
     type: 'left-top',
-    padding: '32px 36px 18px 110px',
-    tagStyle: { bottom: '34px', right: '44px', textAlign: 'right' },
-    boxWidth: 'min(62vw, 980px)',
+    img: webDialogBottomRight,
+    padding: '130px 46px 96px 38px',
+    tagStyle: { top: '42px', bottom: 'none', left: '36px', right: 'none', textAlign: 'right' },
+    minHeight: '600px',
   },
   {
     type: 'left-bottom',
-    padding: '86px 40px 34px 112px',
-    tagStyle: { top: '34px', left: '112px' },
-    boxWidth: 'min(60vw, 920px)',
-    minHeight: '236px',
+    img: webDialogRight,
+    padding: '120px 122px 42px 38px',
+    tagStyle: { top: '32px', left: '40px' },
+    minHeight: '400px',
   },
   {
     type: 'right-top',
-    padding: '132px 88px 62px 40px',
-    tagStyle: { top: '86px', right: '66px', textAlign: 'left' },
-    boxWidth: 'min(66vw, 1040px)',
-    minHeight: '320px',
+    img: webDialogTopRight,
+    padding: '240px 120px 72px 58px',
+    tagStyle: { top: '148px', right: '120px', textAlign: 'left' },
+    minHeight: '500px',
   },
   {
     type: 'right-bottom',
-    padding: '44px 122px 70px 38px',
-    tagStyle: { bottom: '38px', left: '44px', textAlign: 'right' },
-    boxWidth: 'min(64vw, 980px)',
-    minHeight: '252px',
+    img: webDialogRight,
+    padding: '140px 152px 84px 46px',
+    tagStyle: { top: '40px', bottom: 'none', left: '38px', textAlign: 'right' },
+    minHeight: '460px',
   },
-]
-
-const largeStackOffsets = [
-  { shiftX: 0, overlap: 0 },
-  { shiftX: 24, overlap: -56 },
-  { shiftX: -18, overlap: -28 },
-  { shiftX: 10, overlap: 26 },
 ]
 
 const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = useTopicDetail({
   bubbleConfigs: largeBubbleConfigs,
-  stackOffsets: largeStackOffsets,
+})
+
+const BASE_STAGE_WIDTH = 3840
+const BASE_STAGE_HEIGHT = 2160
+const stageScale = ref(1)
+
+const updateStageScale = () => {
+  const widthScale = window.innerWidth / BASE_STAGE_WIDTH
+  const heightScale = window.innerHeight / BASE_STAGE_HEIGHT
+  stageScale.value = Math.min(widthScale, heightScale)
+}
+
+onMounted(() => {
+  updateStageScale()
+  window.addEventListener('resize', updateStageScale)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateStageScale)
+})
+
+const getLargeCardBoxStyle = (index, total) => {
+  const singleLayout = [
+    { top: '24%', left: '50%', width: '42%', transform: 'translateX(-50%)', zIndex: 5 },
+  ]
+  const pairLayouts = [
+    { top: '16%', left: '4%', width: '38%', zIndex: 4 },
+    { top: '18%', right: '4%', width: '36%', zIndex: 5 },
+  ]
+  const tripleLayouts = [
+    { top: '20%', left: '0%', width: '32%', zIndex: 4 },
+    { top: '6%', left: '30%', width: '30%', zIndex: 5 },
+    { top: '12%', right: '0%', width: '31%', zIndex: 6 },
+  ]
+  const fullLayouts = [
+    { top: '33%', left: '39%', width: '33%', zIndex: 3 },
+    { top: '8%', left: '27%', width: '27%', zIndex: 2 },
+    { top: '8%', right: '0%', width: '30%', zIndex: 2 },
+    { top: '20%', left: '0%', width: '31%', zIndex: 4 },
+  ]
+  if (total <= 1) return singleLayout[index] || singleLayout[0]
+  if (total === 2) return pairLayouts[index] || pairLayouts[pairLayouts.length - 1]
+  if (total === 3) return tripleLayouts[index] || tripleLayouts[tripleLayouts.length - 1]
+  return fullLayouts[index] || fullLayouts[fullLayouts.length - 1]
+}
+
+const largeDisplayList = computed(() => {
+  const total = displayList.value.length
+  return displayList.value.map((card, index) => ({
+    ...card,
+    boxStyle: getLargeCardBoxStyle(index, total),
+  }))
 })
 </script>
 
 <template>
   <div class="page">
     <main class="topic-detail" :style="{ backgroundImage: `url(${bgImage})` }">
-      <nav class="year-tabs">
-        <button
-          v-for="year in topicYearTabs"
-          :key="year"
-          type="button"
-          class="year-tabs__item"
-          :class="{ 'year-tabs__item--active': activeYear === year }"
-          :aria-label="`${year}年`"
-          @click="setYear(year)"
+      <div class="topic-detail__viewport">
+        <div
+          class="topic-detail__stage"
+          :style="{ transform: `translate(-50%, -50%) scale(${stageScale})` }"
         >
-          <span class="year-tabs__label">{{ year }}年</span>
-        </button>
-      </nav>
-
-      <img class="topic-detail__icon" :src="quoteIcon" alt="" aria-hidden="true" />
-
-      <section class="scroll-wrapper" :key="activeYear">
-        <div class="scroll-track">
-          <div
-            v-for="card in displayList"
-            :key="card.uniqueKey"
-            class="detail-card-box"
-            :style="card.boxStyle"
-          >
-            <div
-              class="detail-card"
-              :style="{
-                backgroundImage: `url(${card.bgImg})`,
-                ...card.cardStyle,
-              }"
-              role="button"
-              tabindex="0"
-              @click="handleCardClick(card)"
-              @keydown.enter.prevent="handleCardClick(card)"
+          <nav class="year-tabs" :style="{ backgroundImage: `url(${yearTabsBg})` }">
+            <button
+              v-for="year in topicYearTabs"
+              :key="year"
+              type="button"
+              class="year-tabs__item"
+              :class="{ 'year-tabs__item--active': activeYear === year }"
+              :aria-label="`${year}年`"
+              @click="setYear(year)"
             >
-              <p class="detail-card__content">{{ card.content }}</p>
+              <span class="year-tabs__label">{{ year }}年</span>
+            </button>
+          </nav>
+
+          <img class="topic-detail__icon" :src="webQuoteIconTop" alt="" aria-hidden="true" />
+          <img
+            class="topic-detail__city-right"
+            :src="webQuoteIconBottom"
+            alt=""
+            aria-hidden="true"
+          />
+
+          <section class="scroll-wrapper" :key="activeYear">
+            <div class="scroll-track scroll-track--large">
               <div
-                class="detail-card__tag-abs"
-                :style="{ ...card.tagStyle, backgroundImage: `url(${tagBg})` }"
-                role="button"
-                tabindex="0"
-                @click.stop="handleCardClick(card)"
-                @keydown.enter.stop.prevent="handleCardClick(card)"
+                v-for="card in largeDisplayList"
+                :key="card.uniqueKey"
+                class="detail-card-box"
+                :style="card.boxStyle"
               >
-                {{ card.tag }}
+                <div
+                  class="detail-card"
+                  :style="{
+                    backgroundImage: `url(${card.bgImg})`,
+                    ...card.cardStyle,
+                  }"
+                  role="button"
+                  tabindex="0"
+                  @click="handleCardClick(card)"
+                  @keydown.enter.prevent="handleCardClick(card)"
+                >
+                  <p class="detail-card__content">{{ card.content }}</p>
+                  <div
+                    class="detail-card__tag-abs"
+                    :style="{ ...card.tagStyle, backgroundImage: `url(${tagBg})` }"
+                    role="button"
+                    tabindex="0"
+                    @click.stop="handleCardClick(card)"
+                    @keydown.enter.stop.prevent="handleCardClick(card)"
+                  >
+                    {{ card.tag }}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
-      </section>
-
-      <img class="topic-detail__city" :src="cityBottom" alt="" aria-hidden="true" />
-      <img class="topic-detail__city-right" :src="cityRight" alt="" aria-hidden="true" />
+      </div>
     </main>
     <Tabbar />
   </div>
@@ -130,17 +189,33 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
   background-size: cover;
 }
 
+.topic-detail__viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.topic-detail__stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3840px;
+  height: 2160px;
+  transform-origin: center center;
+}
+
 .year-tabs {
   position: absolute;
-  top: 56px;
-  left: 82px;
+  top: 2.4%;
+  left: 3.3%;
   z-index: 20;
   display: flex;
   align-items: stretch;
-  width: min(44vw, 980px);
-  height: 92px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 0 rgb(117 201 255 / 20%);
+  width: 34%;
+  height: 6.4%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
 }
 
 .year-tabs__item {
@@ -150,72 +225,53 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
   justify-content: center;
   flex: 1;
   border: none;
+  background: transparent;
   padding: 0;
-  background: linear-gradient(180deg, #2f58ea 0%, #173da8 100%);
-  clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
+  color: inherit;
+  cursor: pointer;
+  clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
   opacity: 0.95;
 }
 
-.year-tabs__item + .year-tabs__item {
-  margin-left: -22px;
-}
-
-.year-tabs__item:first-child {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
-}
-
-.year-tabs__item:last-child {
-  clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%);
-}
-
-.year-tabs__item:not(:first-child)::before {
-  content: '';
-  position: absolute;
-  left: 10px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgb(166 222 255 / 58%);
-  transform: skewX(-16deg);
+.year-tabs__item {
+  &:nth-child(2),
+  &:nth-child(3) {
+    left: -48px;
+  }
 }
 
 .year-tabs__item--active {
   opacity: 1;
-  background: linear-gradient(180deg, #66ebef 0%, #2baecc 100%);
-  box-shadow: inset 0 0 18px rgb(138 253 255 / 32%);
   z-index: 1;
 }
 
 .year-tabs__label {
-  font-size: clamp(32px, 1.3vw, 40px);
+  font-size: 62px;
   font-weight: 700;
   color: #dbeeff;
-  text-shadow: 0 1px 4px rgb(0 20 84 / 85%);
+  text-shadow: 0 4px 12px rgb(0 20 84 / 88%);
+  letter-spacing: 1px;
   pointer-events: none;
-  letter-spacing: 0.5px;
+  transform: scale(1);
+  transform-origin: center;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
 .year-tabs__item--active .year-tabs__label {
   color: #e9ffff;
-  text-shadow: 0 0 12px rgb(126 244 255 / 95%);
-}
-
-.topic-detail__icon {
-  position: absolute;
-  top: 170px;
-  left: 76px;
-  width: min(14vw, 260px);
-  z-index: 15;
-  opacity: 0.9;
-  pointer-events: none;
+  text-shadow: 0 0 24px rgb(126 244 255 / 95%);
+  transform: scale(1.16);
 }
 
 .scroll-wrapper {
   position: absolute;
-  top: 190px;
-  left: 72px;
-  right: 72px;
-  bottom: 220px;
+  top: 12.8%;
+  left: 2.2%;
+  right: 2.2%;
+  bottom: 10.8%;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -225,16 +281,21 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
 }
 
 .scroll-track {
-  display: flex;
-  flex-direction: column;
-  width: min(90vw, 2240px);
-  margin: 0 auto;
-  padding: 0 16px 120px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-.detail-card-box {
+.scroll-track--large {
   position: relative;
+  width: 100%;
+  min-height: 1320px;
+  padding: 0 28px 140px;
+}
+
+.detail-card-box {
+  position: absolute;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
@@ -254,12 +315,12 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
 .detail-card__content {
   margin: 0;
   color: #eef8ff;
-  font-size: clamp(28px, 1.35vw, 40px);
-  line-height: 1.55;
+  font-size: 52px;
+  line-height: 1.6;
   font-weight: 700;
   text-align: justify;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 50%);
-  margin-bottom: 14px;
+  text-shadow: 0 3px 8px rgb(0 0 0 / 55%);
+  margin-bottom: 18px;
   word-break: break-word;
 }
 
@@ -268,8 +329,8 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 18px;
-  font-size: clamp(18px, 0.85vw, 24px);
+  padding: 8px 24px;
+  font-size: 34px;
   color: #fff;
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -278,21 +339,21 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
   cursor: pointer;
 }
 
-.topic-detail__city {
+.topic-detail__icon {
   position: absolute;
-  left: 50%;
-  bottom: 86px;
-  transform: translateX(-50%);
-  width: min(70vw, 1720px);
-  z-index: 12;
+  top: 11.4%;
+  left: 2.6%;
+  width: 11%;
+  z-index: 15;
+  opacity: 0.9;
   pointer-events: none;
 }
 
 .topic-detail__city-right {
   position: absolute;
-  right: 72px;
-  bottom: 214px;
-  width: min(17vw, 430px);
+  top: 37.4%;
+  right: 2.6%;
+  width: 11%;
   z-index: 13;
   pointer-events: none;
 }

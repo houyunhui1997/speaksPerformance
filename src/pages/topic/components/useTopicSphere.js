@@ -1,11 +1,11 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import topicCardMd from '@/assets/topic/topic-card-md.png'
-import topicCardXl from '@/assets/topic/topic-card-xl.png'
-import topicCardLg from '@/assets/topic/topic-card-lg.png'
-import topicCardSm from '@/assets/topic/topic-card-sm.png'
-import topicCardXs from '@/assets/topic/topic-card-xs.png'
+import topicCardMd from '@/assets/topic/h5/topic-card-md.png'
+import topicCardXl from '@/assets/topic/h5/topic-card-xl.png'
+import topicCardLg from '@/assets/topic/h5/topic-card-lg.png'
+import topicCardSm from '@/assets/topic/h5/topic-card-sm.png'
+import topicCardXs from '@/assets/topic/h5/topic-card-xs.png'
 import { topicSphereList } from '@/pages/topic/mock'
 
 const frameBySize = {
