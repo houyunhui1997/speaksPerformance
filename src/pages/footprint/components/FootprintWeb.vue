@@ -16,9 +16,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import { getCities } from '@/api/footprint'
+import { getCities } from '@/api/footprint_web'
 import arrowImage from '@/assets/footprint/web/arrow.png'
-import bgImage from '@/assets/footprint/web/bg.png'
+import bgImage from '@/assets/footprint/web/bg.jpg'
 import textImg from '@/assets/footprint/web/text1.png'
 import juxing from '@/assets/footprint/web/juxing.png'
 import didian from '@/assets/footprint/web/didian.png'
@@ -31,14 +31,14 @@ const bgMeta = ref({ width: 1000, height: 2000 })
 
 const riverPathPointMode = 'ratio'
 
-const riverStart = { x: 0.79, y: 0.93 }
+const riverStart = { x: 0.39, y: 0.93 }
 
 const riverSegments = [
-  { x: -0.18, y: -0.1, heading: -60, moveLen: 0.5, curve: 0.1 },
-  { x: 0.05, y: -0.41, heading: -90, moveLen: 0.31, curve: -0.45 },
-  { x: 0.48, y: -0.41, heading: -90, moveLen: 0.2, curve: 0.15 },
-  { x: 0.05, y: -0.41, heading: -90, moveLen: 0.12, curve: 0.85 },
-  { x: 0.8, y: -4, heading: -90, moveLen: 0.12, curve: 0 },
+  { x: 0.05, y: -0.1, heading: -130, moveLen: 0.3, curve: 0.1 },
+  { x: 0.28, y: -0.41, heading: -120, moveLen: 0.15, curve: -0.2 },
+  { x: -0.08, y: -0.47, heading: 140, moveLen: 0.09, curve: 0.45 },
+  { x: -0.3, y: -0.51, heading: 150, moveLen: 0.07, curve: 0.1 },
+  { x: 5.8, y: -4, heading: -100, moveLen: 0.2, curve: 0 },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
@@ -96,7 +96,11 @@ const buildAnchorsFromSegments = (start, segments) => {
 
     pts[pts.length - 1].curve = seg.curve || 0
 
-    pts.push(heading === null ? next : { ...next, heading })
+    if (heading !== null) {
+      pts[pts.length - 1].heading = heading
+    }
+
+    pts.push(next)
 
     cur = next
   }
@@ -121,7 +125,7 @@ const buildPolylinePoints = (anchors) => {
     const curve = a.curve || 0
 
     if (Math.abs(curve) > 0.001) {
-      const curveHeading = null
+      const curveHeading = typeof heading === 'number' ? heading : null
 
       const midX = (a.x + b.x) / 2
       const midY = (a.y + b.y) / 2
@@ -185,6 +189,12 @@ const riverPathPoints = computed(() =>
   buildPolylinePoints(buildAnchorsFromSegments(riverStart, riverSegments))
 )
 const riverImagePoints = computed(() => downsamplePoints(riverPathPoints.value, turnStride))
+
+const arrowSizeConfig = {
+  ratio: 0.025,
+  min: 32,
+  max: 72,
+}
 
 const arrowAngleOffset = 140
 const durationMs = 6000
@@ -341,13 +351,20 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.clearRect(0, 0, width, height)
 
+  ctx.imageSmoothingEnabled = true
+  if (typeof ctx.imageSmoothingQuality !== 'undefined') {
+    ctx.imageSmoothingQuality = 'high'
+  }
+
+  const snapToDevicePixel = (value) => Math.round(value * dpr) / dpr
+
   const imgW = bgMeta.value.width
   const imgH = bgMeta.value.height
   const scale = Math.max(width / imgW, height / imgH)
-  const dw = imgW * scale
-  const dh = imgH * scale
-  const dx = (width - dw) / 2
-  const dy = (height - dh) / 2
+  const dw = snapToDevicePixel(imgW * scale)
+  const dh = snapToDevicePixel(imgH * scale)
+  const dx = snapToDevicePixel((width - dw) / 2)
+  const dy = snapToDevicePixel((height - dh) / 2)
 
   ctx.drawImage(bgImgEl.value, dx, dy, dw, dh)
 
@@ -361,7 +378,7 @@ const drawFrame = (t, loopIndex, lastAngle) => {
   const x = point.x * scale + dx
   const y = point.y * scale + dy
 
-  const arrowSize = clamp(width * 0.085, 44, 92)
+  const arrowSize = clamp(width * arrowSizeConfig.ratio, arrowSizeConfig.min, arrowSizeConfig.max)
   const arrowOpacity = smoothstep(0.02, 0.08, t) * (1 - smoothstep(0.92, 0.98, t))
   const angle = lerpAngle(lastAngle, point.angle, 0.08)
 
@@ -508,6 +525,26 @@ const drawFrame = (t, loopIndex, lastAngle) => {
     ctx.restore()
   }
 
+  // --- DEBUG: 绘制红色测试点 ---
+  // 绘制路径关键节点（段落端点），方便调试路径
+  //   const debugAnchors = buildAnchorsFromSegments(riverStart, riverSegments)
+  //   ctx.save()
+  //   ctx.fillStyle = 'red'
+  //   for (const pt of debugAnchors) {
+  //     const ax = pt.x * scale + dx
+  //     const ay = pt.y * scale + dy
+  //     ctx.beginPath()
+  //     ctx.arc(ax, ay, 4, 0, Math.PI * 2)
+  //     ctx.fill()
+  //   }
+
+  //   // 绘制当前箭头位置
+  //   ctx.beginPath()
+  //   ctx.arc(x, y, 4, 0, Math.PI * 2)
+  //   ctx.fill()
+  //   ctx.restore()
+  // ---------------------------
+
   return angle
 }
 
@@ -624,7 +661,7 @@ onBeforeUnmount(() => {
 }
 
 .fonttext {
-  font-size: 14px;
+  font-size: 24px;
   line-height: 22px;
   color: #fff;
 }

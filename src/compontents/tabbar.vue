@@ -63,6 +63,21 @@ const handleTabClick = (tab) => {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+@media (min-width: 900px) {
+  .tabbar {
+    left: 50%;
+    right: auto;
+    width: 70%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (min-width: 1600px) {
+  .tabbar {
+    width: 55%;
+  }
+}
+
 .tabbar__item {
   flex: 1;
   padding: 0;
