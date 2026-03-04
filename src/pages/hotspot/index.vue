@@ -77,10 +77,10 @@ const hotspotSeedCards = [
     size: 'xl',
     tone: 'red',
     kind: 'link',
-    coverId: 2,
+    coverId: 4,
     coverFit: 'contain',
     coverType: 'jpg',
-    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
+    href: 'https://scnews.newssc.org/system/topic/15615/index.shtml',
   },
   {
     id: 5,
