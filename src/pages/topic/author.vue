@@ -50,7 +50,8 @@ const detectModeByResolution = () => {
 }
 
 const updateScreenMode = () => {
-  screenMode.value = detectModeByResolution()
+  // screenMode.value = detectModeByResolution()
+  screenMode.value = 'h5'
 }
 
 const CurrentComponent = computed(() => modeComponentMap[screenMode.value] || TopicAuthorH5)
