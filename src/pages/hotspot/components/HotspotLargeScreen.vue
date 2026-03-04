@@ -13,6 +13,7 @@ const { hotspotSphereRef, hotspotCards } = useHotspotSphere({
   cards: hotspotSeedCards,
   fallbackThumb: video,
   fallbackVideo: localVideo,
+  forceCoverFit: true,
   radius: 300,
   verticalRadius: 340,
   horizontalSpread: 4,
@@ -352,7 +353,7 @@ $tower-layouts: (
 
   &__thumb {
     position: absolute;
-    inset: 18px;
+    inset: 30px;
     border-radius: 4px;
     background-size: 100% 100%;
     background-position: center;

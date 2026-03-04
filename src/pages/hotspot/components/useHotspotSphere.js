@@ -122,6 +122,7 @@ export function useHotspotSphere(options = {}) {
     cards = hotspotSeedCards,
     fallbackThumb = '',
     fallbackVideo = '',
+    forceCoverFit = false,
     radius = 150,
     verticalRadius = 180,
     horizontalSpread = 1,
@@ -159,7 +160,7 @@ export function useHotspotSphere(options = {}) {
       const yPos = y * verticalRadius
 
       const thumbStyle = {
-        objectFit: item.coverFit || 'cover',
+        objectFit: forceCoverFit ? 'cover' : item.coverFit || 'cover',
         width: toCssSize(item.coverWidth) || undefined,
         height: toCssSize(item.coverHeight) || undefined,
       }
