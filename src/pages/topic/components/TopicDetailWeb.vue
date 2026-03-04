@@ -72,7 +72,7 @@ const webDisplayList = computed(() => {
 <template>
   <div class="page">
     <main class="topic-detail" :style="{ backgroundImage: `url(${bgImage})` }">
-      <nav class="year-tabs" :style="{ backgroundImage: `url(${yearTabsBg})` }">
+      <nav class="year-tabs">
         <button
           v-for="year in topicYearTabs"
           :key="year"
@@ -169,19 +169,36 @@ const webDisplayList = computed(() => {
   flex: 1;
   border: none;
   padding: 0;
-  background: transparent;
+  background: linear-gradient(180deg, #2f58ea 0%, #173da8 100%);
   clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
   opacity: 0.95;
 }
-.year-tabs__item {
-  &:nth-child(2),
-  &:nth-child(3) {
-    left: -30px;
-  }
+.year-tabs__item + .year-tabs__item {
+  margin-left: -20px;
 }
 
+.year-tabs__item:first-child {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+}
+
+.year-tabs__item:last-child {
+  clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.year-tabs__item:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgb(166 222 255 / 58%);
+  transform: skewX(-14deg);
+}
 .year-tabs__item--active {
   opacity: 1;
+  background: linear-gradient(180deg, #66ebef 0%, #2baecc 100%);
+  box-shadow: inset 0 0 18px rgb(138 253 255 / 32%);
   z-index: 1;
 }
 
@@ -191,7 +208,6 @@ const webDisplayList = computed(() => {
   color: #dbeeff;
   text-shadow: 0 1px 4px rgb(0 20 84 / 85%);
   pointer-events: none;
-  letter-spacing: 0.5px;
   transform: scale(1);
   transform-origin: center;
   transition:
@@ -203,7 +219,6 @@ const webDisplayList = computed(() => {
 .year-tabs__item--active .year-tabs__label {
   color: #e9ffff;
   text-shadow: 0 0 12px rgb(126 244 255 / 95%);
-  transform: scale(1.14);
 }
 
 .scroll-wrapper {

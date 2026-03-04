@@ -6,6 +6,7 @@ import bgImage from '@/assets/topic/h5/list-bg.png'
 import dialogTop from '@/assets/topic/h5/dialog-top.png'
 import authorIcon01 from '@/assets/topic/h5/author-icon-01.png'
 import authorIcon02 from '@/assets/topic/h5/author-icon-02.png'
+import authorLink from '@/assets/topic/web/author-link-web.png'
 import { useTopicAuthor } from './useTopicAuthor'
 
 const { authorAvatar, authorTopics, authorProfile, handleCardLink } = useTopicAuthor()
@@ -108,6 +109,7 @@ watch(
           @keydown.enter.prevent="handleCardLink(topic)"
         >
           <h3 class="author-topic-card__title">{{ topic.title }}</h3>
+          <img class="topic-card__arrow" :src="authorLink" alt="link" />
         </article>
         <p v-if="authorTopics.length === 0" class="author-empty">暂无该作者相关议题</p>
       </section>
@@ -234,6 +236,7 @@ watch(
 }
 
 .author-topic-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: min(92%, 500px);
@@ -258,7 +261,13 @@ watch(
   display: -webkit-box;
   overflow: hidden;
 }
-
+.topic-card__arrow {
+  position: absolute;
+  width: 30px;
+  right: 10px;
+  bottom: 10px;
+  cursor: pointer;
+}
 .author-empty {
   margin: 32px auto 0;
   width: min(92%, 500px);

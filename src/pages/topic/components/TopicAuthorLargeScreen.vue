@@ -117,6 +117,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 5%;
   width: 42%;
+  aspect-ratio: 3 / 4;
   left: 50%;
   transform: translateX(-50%);
   overflow: hidden;
