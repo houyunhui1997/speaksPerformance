@@ -67,9 +67,9 @@ onBeforeUnmount(() => {
 const getLargeCardBoxStyle = (index, total) => {
   const fullLayouts = [
     { top: '32%', left: '39%', width: '40%', zIndex: 3 },
-    { top: '8%', left: '30%', width: '27%', zIndex: 2 },
+    { top: '8%', left: '30%', width: '30%', zIndex: 2 },
     { top: '6%', right: '0%', width: '34%', zIndex: 2 },
-    { top: '34%', left: '1%', width: '32%', zIndex: 4 },
+    { top: '36%', left: '1%', width: '32%', zIndex: 4 },
   ]
   return fullLayouts[index] || fullLayouts[fullLayouts.length - 1]
 }
