@@ -1,8 +1,8 @@
 ﻿<script setup>
-import bgWebImage from '@/assets/homepage/background_web.png'
+import bgWebImage from '@/assets/homepage/web/background_web.png'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
-import titleImage from '@/assets/homepage/title.png'
-import NationalEmblem from '@/assets/homepage/national_emblem.png'
+import titleImage from '@/assets/homepage/web/title.png'
+import NationalEmblem from '@/assets/homepage/web/national_emblem.png'
 import { useIndexLanding } from './useIndexLanding'
 
 const {
