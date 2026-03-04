@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/web/topic-detail-bg-web.png'
-import yearTabsBg from '@/assets/topic/web/topic-detail-tabs-web.png'
 import webDialogRight from '@/assets/topic/web/topic-detail-right-web.png'
 import webDialogTopRight from '@/assets/topic/web/topic-detail-top-right-web.png'
 import webDialogBottomRight from '@/assets/topic/web/topic-detail-bottomright-web.png'
@@ -191,7 +190,7 @@ const webDisplayList = computed(() => {
   left: 8px;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 2px;
   background: rgb(166 222 255 / 58%);
   transform: skewX(-14deg);
 }

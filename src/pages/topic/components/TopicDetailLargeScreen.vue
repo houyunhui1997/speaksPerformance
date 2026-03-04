@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/web/topic-detail-bg-web.png'
-import yearTabsBg from '@/assets/topic/web/topic-detail-tabs-web.png'
 import webDialogRight from '@/assets/topic/web/topic-detail-right-web.png'
 import webDialogTopRight from '@/assets/topic/web/topic-detail-top-right-web.png'
 import webDialogBottomRight from '@/assets/topic/web/topic-detail-bottomright-web.png'
@@ -15,28 +14,28 @@ const largeBubbleConfigs = [
   {
     type: 'left-top',
     img: webDialogBottomRight,
-    padding: '130px 46px 96px 38px',
+    padding: '150px 46px 96px 38px',
     tagStyle: { top: '42px', bottom: 'none', left: '36px', right: 'none', textAlign: 'right' },
     minHeight: '600px',
   },
   {
     type: 'left-bottom',
     img: webDialogRight,
-    padding: '120px 122px 42px 38px',
+    padding: '140px 122px 42px 38px',
     tagStyle: { top: '32px', left: '40px' },
     minHeight: '400px',
   },
   {
     type: 'right-top',
     img: webDialogTopRight,
-    padding: '240px 120px 72px 58px',
+    padding: '260px 120px 72px 58px',
     tagStyle: { top: '148px', right: '120px', textAlign: 'left' },
     minHeight: '500px',
   },
   {
     type: 'right-bottom',
     img: webDialogRight,
-    padding: '140px 152px 84px 46px',
+    padding: '160px 152px 84px 46px',
     tagStyle: { top: '40px', bottom: 'none', left: '38px', textAlign: 'right' },
     minHeight: '460px',
   },
@@ -66,27 +65,12 @@ onBeforeUnmount(() => {
 })
 
 const getLargeCardBoxStyle = (index, total) => {
-  const singleLayout = [
-    { top: '24%', left: '50%', width: '42%', transform: 'translateX(-50%)', zIndex: 5 },
-  ]
-  const pairLayouts = [
-    { top: '16%', left: '4%', width: '38%', zIndex: 4 },
-    { top: '18%', right: '4%', width: '36%', zIndex: 5 },
-  ]
-  const tripleLayouts = [
-    { top: '20%', left: '0%', width: '32%', zIndex: 4 },
-    { top: '6%', left: '30%', width: '30%', zIndex: 5 },
-    { top: '12%', right: '0%', width: '31%', zIndex: 6 },
-  ]
   const fullLayouts = [
-    { top: '33%', left: '39%', width: '33%', zIndex: 3 },
-    { top: '8%', left: '27%', width: '27%', zIndex: 2 },
-    { top: '8%', right: '0%', width: '30%', zIndex: 2 },
-    { top: '20%', left: '0%', width: '31%', zIndex: 4 },
+    { top: '32%', left: '39%', width: '40%', zIndex: 3 },
+    { top: '12%', left: '27%', width: '27%', zIndex: 2 },
+    { top: '6%', right: '0%', width: '34%', zIndex: 2 },
+    { top: '24%', left: '1%', width: '35%', zIndex: 4 },
   ]
-  if (total <= 1) return singleLayout[index] || singleLayout[0]
-  if (total === 2) return pairLayouts[index] || pairLayouts[pairLayouts.length - 1]
-  if (total === 3) return tripleLayouts[index] || tripleLayouts[tripleLayouts.length - 1]
   return fullLayouts[index] || fullLayouts[fullLayouts.length - 1]
 }
 
@@ -107,7 +91,7 @@ const largeDisplayList = computed(() => {
           class="topic-detail__stage"
           :style="{ transform: `translate(-50%, -50%) scale(${stageScale})` }"
         >
-          <nav class="year-tabs" :style="{ backgroundImage: `url(${yearTabsBg})` }">
+          <nav class="year-tabs">
             <button
               v-for="year in topicYearTabs"
               :key="year"
@@ -213,9 +197,8 @@ const largeDisplayList = computed(() => {
   align-items: stretch;
   width: 34%;
   height: 6.4%;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  background-position: center;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgb(117 201 255 / 20%);
 }
 
 .year-tabs__item {
@@ -225,23 +208,38 @@ const largeDisplayList = computed(() => {
   justify-content: center;
   flex: 1;
   border: none;
-  background: transparent;
+  background: linear-gradient(180deg, #2f58ea 0%, #173da8 100%);
   padding: 0;
-  color: inherit;
   cursor: pointer;
-  clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+  clip-path: polygon(32px 0, 100% 0, calc(100% - 32px) 100%, 0 100%);
   opacity: 0.95;
 }
-
-.year-tabs__item {
-  &:nth-child(2),
-  &:nth-child(3) {
-    left: -48px;
-  }
+.year-tabs__item + .year-tabs__item {
+  margin-left: -32px;
 }
 
+.year-tabs__item:first-child {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 32px) 100%, 0 100%);
+}
+
+.year-tabs__item:last-child {
+  clip-path: polygon(32px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.year-tabs__item:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: rgb(166 222 255 / 58%);
+  transform: skewX(-13deg);
+}
 .year-tabs__item--active {
   opacity: 1;
+  background: linear-gradient(180deg, #66ebef 0%, #2baecc 100%);
+  box-shadow: inset 0 0 18px rgb(138 253 255 / 32%);
   z-index: 1;
 }
 
@@ -249,21 +247,14 @@ const largeDisplayList = computed(() => {
   font-size: 62px;
   font-weight: 700;
   color: #dbeeff;
-  text-shadow: 0 4px 12px rgb(0 20 84 / 88%);
-  letter-spacing: 1px;
+  text-shadow: 0 1px 4px rgb(0 20 84 / 85%);
   pointer-events: none;
-  transform: scale(1);
-  transform-origin: center;
-  transition:
-    transform 0.2s ease,
-    color 0.2s ease,
-    text-shadow 0.2s ease;
+  letter-spacing: 0.5px;
 }
 
 .year-tabs__item--active .year-tabs__label {
   color: #e9ffff;
-  text-shadow: 0 0 24px rgb(126 244 255 / 95%);
-  transform: scale(1.16);
+  text-shadow: 0 0 12px rgb(126 244 255 / 95%);
 }
 
 .scroll-wrapper {
@@ -330,7 +321,7 @@ const largeDisplayList = computed(() => {
   align-items: center;
   justify-content: center;
   padding: 8px 24px;
-  font-size: 34px;
+  font-size: 48px;
   color: #fff;
   background-repeat: no-repeat;
   background-size: 100% 100%;
