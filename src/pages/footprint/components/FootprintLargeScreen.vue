@@ -38,7 +38,7 @@ const riverSegments = [
   { x: 0.28, y: -0.41, heading: -120, moveLen: 0.15, curve: -0.2 },
   { x: -0.08, y: -0.47, heading: 140, moveLen: 0.09, curve: 0.45 },
   { x: -0.3, y: -0.51, heading: 150, moveLen: 0.07, curve: 0.1 },
-  { x: 5.8, y: -4, heading: -60, moveLen: 0.2, curve: 0 },
+  { x: 5.8, y: -4, heading: -110, moveLen: 0.2, curve: -0.1 },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
