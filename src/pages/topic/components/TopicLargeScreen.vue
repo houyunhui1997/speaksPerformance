@@ -1,29 +1,54 @@
 <script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/web/topic-bg-web.png'
 import { useTopicSphere } from './useTopicSphere'
 
+const BASE_WIDTH = 1920
+const BASE_HEIGHT = 1080
+const topicScale = ref(1)
+
+const updateTopicScale = () => {
+  const viewportScale = Math.min(window.innerWidth / BASE_WIDTH, window.innerHeight / BASE_HEIGHT)
+  topicScale.value = Math.max(1, Math.min(viewportScale * 0.82, 1.75))
+}
+
+onMounted(() => {
+  updateTopicScale()
+  window.addEventListener('resize', updateTopicScale)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateTopicScale)
+})
+
 const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } = useTopicSphere({
-  radius: 280,
-  horizontalSpread: 4,
-  focalLength: 860,
-  baseSpeed: 0.002,
+  radius: computed(() => Math.round(280 * topicScale.value)),
+  horizontalSpread: computed(() => Number((3.75 + (topicScale.value - 1) * 0.4).toFixed(2))),
+  focalLength: computed(() => Math.round(860 * topicScale.value)),
+  baseSpeed: computed(() => Number((0.002 / Math.sqrt(topicScale.value)).toFixed(4))),
 })
 </script>
 
 <template>
   <div class="page">
-    <main class="topic-page" :style="{ backgroundImage: `url(${bgImage})` }">
-      <section ref="sphereRef" class="topic-sphere">
+    <main
+      class="topic-page"
+      :style="{ backgroundImage: `url(${bgImage})`, '--topic-scale': String(topicScale) }"
+    >
+      <section
+        ref="sphereRef"
+        class="topic-sphere"
+        @click="handleTopicClick()"
+        @touchend.stop.prevent="handleTopicTouchEnd()"
+        @keydown.enter.prevent="handleTopicClick()"
+      >
         <article
           v-for="item in tags"
           :key="item.key"
           class="topic-item"
           :class="`topic-item--${item.size}`"
           :style="item.style"
-          @click="handleTopicClick(item)"
-          @touchend.stop.prevent="handleTopicTouchEnd(item)"
-          @keydown.enter.prevent="handleTopicClick(item)"
         >
           <img class="topic-item__frame" :src="getCardFrame(item)" alt="" />
           <span class="topic-item__text">
@@ -48,9 +73,10 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
 }
 
 .topic-page {
+  --topic-scale: 1;
   width: 100%;
   height: 100%;
-  padding-bottom: 92px;
+  padding-bottom: calc(92px * var(--topic-scale));
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
@@ -58,18 +84,18 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 120px;
+  padding-top: calc(120px * var(--topic-scale));
 }
 
 .topic-sphere {
   position: relative;
   width: 100%;
-  height: 650px;
+  height: calc(650px * var(--topic-scale));
   margin-top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1500px;
+  perspective: calc(1500px * var(--topic-scale));
   touch-action: none;
   cursor: grab;
 }
@@ -81,10 +107,10 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 230px;
-  height: 96px;
-  margin-left: -115px;
-  margin-top: -48px;
+  width: calc(230px * var(--topic-scale));
+  height: calc(96px * var(--topic-scale));
+  margin-left: calc(-115px * var(--topic-scale));
+  margin-top: calc(-48px * var(--topic-scale));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,7 +135,7 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
   font-weight: 700;
   text-shadow: 0 0 8px rgb(0 0 0 / 80%);
   white-space: nowrap;
-  font-size: 24px;
+  font-size: calc(24px * var(--topic-scale));
 }
 
 .topic-item__num-placeholder {
@@ -118,46 +144,46 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
 }
 
 .topic-item--wide {
-  width: 420px;
-  height: 104px;
-  margin-left: -210px;
-  margin-top: -52px;
+  width: calc(420px * var(--topic-scale));
+  height: calc(104px * var(--topic-scale));
+  margin-left: calc(-210px * var(--topic-scale));
+  margin-top: calc(-52px * var(--topic-scale));
 }
 .topic-item--wide .topic-item__text {
-  font-size: 28px;
+  font-size: calc(28px * var(--topic-scale));
 }
 
 .topic-item--xl {
-  width: 320px;
-  height: 122px;
-  margin-left: -160px;
-  margin-top: -61px;
+  width: calc(320px * var(--topic-scale));
+  height: calc(122px * var(--topic-scale));
+  margin-left: calc(-160px * var(--topic-scale));
+  margin-top: calc(-61px * var(--topic-scale));
 }
 .topic-item--xl .topic-item__text {
-  font-size: 30px;
+  font-size: calc(30px * var(--topic-scale));
 }
 
 .topic-item--lg {
-  width: 280px;
-  height: 112px;
-  margin-left: -140px;
-  margin-top: -56px;
+  width: calc(280px * var(--topic-scale));
+  height: calc(112px * var(--topic-scale));
+  margin-left: calc(-140px * var(--topic-scale));
+  margin-top: calc(-56px * var(--topic-scale));
 }
 .topic-item--lg .topic-item__text {
-  font-size: 28px;
+  font-size: calc(28px * var(--topic-scale));
 }
 
 .topic-item--sm {
-  width: 210px;
-  height: 84px;
-  margin-left: -105px;
-  margin-top: -42px;
+  width: calc(210px * var(--topic-scale));
+  height: calc(84px * var(--topic-scale));
+  margin-left: calc(-105px * var(--topic-scale));
+  margin-top: calc(-42px * var(--topic-scale));
 }
 
 .topic-item--xs {
-  width: 186px;
-  height: 74px;
-  margin-left: -93px;
-  margin-top: -37px;
+  width: calc(186px * var(--topic-scale));
+  height: calc(74px * var(--topic-scale));
+  margin-left: calc(-93px * var(--topic-scale));
+  margin-top: calc(-37px * var(--topic-scale));
 }
 </style>

@@ -1,19 +1,44 @@
 <script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Tabbar from '@/compontents/tabbar.vue'
 import bgImage from '@/assets/topic/web/topic-bg-web.png'
 import { useTopicSphere } from './useTopicSphere'
 
+const BASE_WEB_WIDTH = 1920
+const BASE_WEB_HEIGHT = 1080
+const topicScale = ref(1)
+
+const updateTopicScale = () => {
+  const viewportScale = Math.min(
+    window.innerWidth / BASE_WEB_WIDTH,
+    window.innerHeight / BASE_WEB_HEIGHT
+  )
+  topicScale.value = Math.max(0.78, Math.min(viewportScale, 1.2))
+}
+
+onMounted(() => {
+  updateTopicScale()
+  window.addEventListener('resize', updateTopicScale)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateTopicScale)
+})
+
 const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } = useTopicSphere({
-  radius: 220,
-  horizontalSpread: 3.75,
-  focalLength: 640,
-  baseSpeed: 0.0024,
+  radius: computed(() => Math.round(220 * topicScale.value)),
+  horizontalSpread: computed(() => Number((3.75 + (topicScale.value - 1) * 0.28).toFixed(2))),
+  focalLength: computed(() => Math.round(640 * topicScale.value)),
+  baseSpeed: computed(() => Number((0.0024 / Math.sqrt(topicScale.value)).toFixed(4))),
 })
 </script>
 
 <template>
   <div class="page">
-    <main class="topic-page" :style="{ backgroundImage: `url(${bgImage})` }">
+    <main
+      class="topic-page"
+      :style="{ backgroundImage: `url(${bgImage})`, '--topic-scale': String(topicScale) }"
+    >
       <section ref="sphereRef" class="topic-sphere">
         <article
           v-for="item in tags"
@@ -48,9 +73,10 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
 }
 
 .topic-page {
+  --topic-scale: 1;
   width: 100%;
   height: 100%;
-  padding-bottom: 92px;
+  padding-bottom: calc(92px * var(--topic-scale));
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
@@ -58,18 +84,18 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 90px;
+  padding-top: calc(90px * var(--topic-scale));
 }
 
 .topic-sphere {
   position: relative;
   width: 100%;
-  height: 520px;
-  margin-top: -20px;
+  height: calc(520px * var(--topic-scale));
+  margin-top: calc(-20px * var(--topic-scale));
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1200px;
+  perspective: calc(1200px * var(--topic-scale));
   touch-action: none;
   cursor: grab;
 }
@@ -81,10 +107,10 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 180px;
-  height: 76px;
-  margin-left: -90px;
-  margin-top: -38px;
+  width: calc(180px * var(--topic-scale));
+  height: calc(76px * var(--topic-scale));
+  margin-left: calc(-90px * var(--topic-scale));
+  margin-top: calc(-38px * var(--topic-scale));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,13 +129,13 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
   position: relative;
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
+  gap: calc(6px * var(--topic-scale));
   z-index: 2;
   color: #fff;
   font-weight: 700;
   text-shadow: 0 0 6px rgb(0 0 0 / 80%);
   white-space: nowrap;
-  font-size: 20px;
+  font-size: calc(20px * var(--topic-scale));
 }
 
 .topic-item__num-placeholder {
@@ -118,46 +144,46 @@ const { sphereRef, tags, getCardFrame, handleTopicClick, handleTopicTouchEnd } =
 }
 
 .topic-item--wide {
-  width: 320px;
-  height: 80px;
-  margin-left: -160px;
-  margin-top: -40px;
+  width: calc(320px * var(--topic-scale));
+  height: calc(80px * var(--topic-scale));
+  margin-left: calc(-160px * var(--topic-scale));
+  margin-top: calc(-40px * var(--topic-scale));
 }
 .topic-item--wide .topic-item__text {
-  font-size: 22px;
+  font-size: calc(22px * var(--topic-scale));
 }
 
 .topic-item--xl {
-  width: 240px;
-  height: 92px;
-  margin-left: -120px;
-  margin-top: -46px;
+  width: calc(240px * var(--topic-scale));
+  height: calc(92px * var(--topic-scale));
+  margin-left: calc(-120px * var(--topic-scale));
+  margin-top: calc(-46px * var(--topic-scale));
 }
 .topic-item--xl .topic-item__text {
-  font-size: 24px;
+  font-size: calc(24px * var(--topic-scale));
 }
 
 .topic-item--lg {
-  width: 210px;
-  height: 84px;
-  margin-left: -105px;
-  margin-top: -42px;
+  width: calc(210px * var(--topic-scale));
+  height: calc(84px * var(--topic-scale));
+  margin-left: calc(-105px * var(--topic-scale));
+  margin-top: calc(-42px * var(--topic-scale));
 }
 .topic-item--lg .topic-item__text {
-  font-size: 22px;
+  font-size: calc(22px * var(--topic-scale));
 }
 
 .topic-item--sm {
-  width: 150px;
-  height: 60px;
-  margin-left: -75px;
-  margin-top: -30px;
+  width: calc(150px * var(--topic-scale));
+  height: calc(60px * var(--topic-scale));
+  margin-left: calc(-75px * var(--topic-scale));
+  margin-top: calc(-30px * var(--topic-scale));
 }
 
 .topic-item--xs {
-  width: 132px;
-  height: 52px;
-  margin-left: -66px;
-  margin-top: -26px;
+  width: calc(132px * var(--topic-scale));
+  height: calc(52px * var(--topic-scale));
+  margin-left: calc(-66px * var(--topic-scale));
+  margin-top: calc(-26px * var(--topic-scale));
 }
 </style>

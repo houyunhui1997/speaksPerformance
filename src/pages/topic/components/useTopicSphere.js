@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref, unref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import topicCardMd from '@/assets/topic/h5/topic-card-md.png'
@@ -19,21 +19,28 @@ const frameBySize = {
 
 export function useTopicSphere(options = {}) {
   const {
-    radius = 160,
-    horizontalSpread = 1,
-    focalLength = 400,
-    baseSpeed = 0.003,
     dragThreshold = 8,
     detailRouteName = 'topicDetail',
     detailQuery = { year: '2025' },
   } = options
+
+  const getNumericOption = (value, fallback) => {
+    const numericValue = Number(unref(value))
+    return Number.isFinite(numericValue) ? numericValue : fallback
+  }
+
+  const radius = computed(() => getNumericOption(options.radius, 160))
+  const horizontalSpread = computed(() => getNumericOption(options.horizontalSpread, 1))
+  const focalLength = computed(() => getNumericOption(options.focalLength, 400))
+  const baseSpeed = computed(() => getNumericOption(options.baseSpeed, 0.003))
+  const activeDragThreshold = computed(() => getNumericOption(dragThreshold, 8))
 
   const router = useRouter()
   const sphereRef = ref(null)
   const tags = ref([])
 
   let animationId = null
-  let speedX = baseSpeed
+  let speedX = baseSpeed.value
   let isDragging = false
   let lastY = 0
   let startX = 0
@@ -49,9 +56,9 @@ export function useTopicSphere(options = {}) {
       const radiusAtY = Math.sqrt(1 - y * y)
       const theta = phi * i
 
-      const x = Math.cos(theta) * radiusAtY * radius * horizontalSpread
-      const z = Math.sin(theta) * radiusAtY * radius
-      const yPos = y * radius
+      const x = Math.cos(theta) * radiusAtY * radius.value * horizontalSpread.value
+      const z = Math.sin(theta) * radiusAtY * radius.value
+      const yPos = y * radius.value
 
       return { ...item, x, y: yPos, z, style: {} }
     })
@@ -60,8 +67,8 @@ export function useTopicSphere(options = {}) {
   const animate = () => {
     if (!isDragging) {
       speedX = speedX * 0.96
-      if (Math.abs(speedX) < baseSpeed) {
-        speedX = Math.sign(speedX || 1) * baseSpeed
+      if (Math.abs(speedX) < baseSpeed.value) {
+        speedX = Math.sign(speedX || 1) * baseSpeed.value
       }
     }
 
@@ -75,7 +82,7 @@ export function useTopicSphere(options = {}) {
       tag.y = y1
       tag.z = z1
 
-      const scale = focalLength / (focalLength - tag.z)
+      const scale = focalLength.value / (focalLength.value - tag.z)
       const alpha = (scale - 0.5) / 0.5
       const opacity = Math.max(0.3, Math.min(1, alpha))
       const zIndex = Math.round(100 - tag.z)
@@ -111,7 +118,7 @@ export function useTopicSphere(options = {}) {
 
     speedX = -deltaY * 0.005
 
-    if (moveX > dragThreshold || moveY > dragThreshold) {
+    if (moveX > activeDragThreshold.value || moveY > activeDragThreshold.value) {
       shouldBlockClick = true
       e.preventDefault()
     }
@@ -161,6 +168,11 @@ export function useTopicSphere(options = {}) {
     window.addEventListener('touchmove', onPointerMove, { passive: false })
     window.addEventListener('mouseup', onPointerEnd)
     window.addEventListener('touchend', onPointerEnd)
+  })
+
+  watch([radius, horizontalSpread, focalLength, baseSpeed], () => {
+    initTags()
+    speedX = Math.sign(speedX || 1) * baseSpeed.value
   })
 
   onUnmounted(() => {

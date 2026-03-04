@@ -32,7 +32,7 @@ const webBubbleConfigs = [
     type: 'right-top',
     img: webDialogTopRight,
     padding: '112px 72px 52px 34px',
-    tagStyle: { top: '72px', right: '54px', textAlign: 'left' },
+    tagStyle: { top: '72px', right: '70px', textAlign: 'left' },
     boxWidth: 'min(68vw, 840px)',
     minHeight: '252px',
   },
