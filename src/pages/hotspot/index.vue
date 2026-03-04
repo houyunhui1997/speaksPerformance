@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const HotspotH5 = defineAsyncComponent(() => import('./components/HotspotH5.vue'))

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onUnmounted, ref } from 'vue'
 import { Events } from 'xgplayer'
 import Tabbar from '@/compontents/tabbar.vue'
 import H5VideoPlayer from '@/compontents/h5-video-player.vue'
@@ -7,241 +7,24 @@ import bgImage from '@/assets/hotspot/web/hotspot-bg-web.png'
 import video from '@/assets/hotspot/h5/video.png'
 import videoBg from '@/assets/hotspot/web/video-bg-web.png'
 import localVideo from '@/assets/video/index.mp4'
+import { hotspotSeedCards, useHotspotSphere } from './useHotspotSphere'
 
-const videoThumbModules = import.meta.glob('../../../assets/video/*_video/*.{jpg,jpeg,png,webp}', {
-  eager: true,
+const { hotspotSphereRef, hotspotCards } = useHotspotSphere({
+  cards: hotspotSeedCards,
+  fallbackThumb: video,
+  fallbackVideo: localVideo,
+  radius: 220,
+  verticalRadius: 150,
+  horizontalSpread: 3,
+  focalLength: 860,
+  baseSpeedY: 0.0022,
+  baseSpeedX: 0.0006,
+  maxScale: 1.4,
 })
-const videoSourceModules = import.meta.glob('../../../assets/video/*_video/*.mp4', { eager: true })
 
-const coverExts = ['jpg', 'jpeg', 'png', 'webp']
-
-const toCssSize = (value) => {
-  if (typeof value === 'number') return `${value}px`
-  return value
-}
-
-const getCardThumb = (id, ext) => {
-  const folder = `../../../assets/video/${id}_video/`
-  const directExt = ext ? [ext] : []
-  const candidates = [...directExt, ...coverExts].filter(Boolean)
-
-  for (const e of candidates) {
-    const thumbKey = `${folder}${id}.${e}`
-    const mod = videoThumbModules[thumbKey]
-    if (mod?.default) return mod.default
-  }
-
-  return video
-}
-
-const getCardVideo = (id) => {
-  const folder = `../../../assets/video/${id}_video/`
-  const videoKey = `${folder}${id}.mp4`
-
-  return videoSourceModules[videoKey]?.default || localVideo
-}
-
-const hotspotSeedCards = [
-  {
-    id: 1,
-    size: 'sm',
-    tone: 'olive',
-    kind: 'video',
-    coverId: 1,
-    coverFit: 'cover',
-    coverType: 'jpg',
-    videoId: 1,
-  },
-  {
-    id: 2,
-    size: 'lg',
-    tone: 'gold',
-    kind: 'link',
-    coverId: 2,
-    // coverWidth: 60
-    coverFit: 'contain',
-    coverType: 'jpg',
-    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
-  },
-  {
-    id: 3,
-    size: 'xs',
-    tone: 'rose',
-    kind: 'video',
-    coverId: 3,
-    coverFit: 'cover',
-    coverType: 'jpg',
-    videoId: 3,
-  },
-  {
-    id: 4,
-    size: 'xl',
-    tone: 'red',
-    kind: 'link',
-    coverId: 4,
-    coverFit: 'contain',
-    coverType: 'jpg',
-    href: 'https://scnews.newssc.org/system/topic/15615/index.shtml',
-  },
-  {
-    id: 5,
-    size: 'md',
-    tone: 'cream',
-    kind: 'link',
-    coverId: 5,
-    coverFit: 'contain',
-    coverType: 'png',
-    href: 'https://article.xuexi.cn/articles/index.html?art_id=2673467875447881012&item_id=2673467875447881012&cdn=https%3A%2F%2Fregion-sichuan-resource&reedit_timestamp=1772528626000&study_style_id=video_default&xxqg_jm=dtxuexi%3A%2F%2Fappclient%2Fpage%2Fimmersive_play_v2%3Freco_type%3D1%26itemId%3D2673467875447881012%26cid%3D1156%26immersion_transfer_info%3D%257B%2522shr_info%2522%253A%25221%2522%257D%26study_video_continue%3D0&source=share&share_to=wx_feed',
-  },
-  {
-    id: 6,
-    size: 'xs',
-    tone: 'lemon',
-    kind: 'link',
-    coverId: 6,
-    coverFit: 'contain',
-    coverType: 'png',
-    href: 'https://mp.weixin.qq.com/s/BXfYQmEuvy5nHxNHtjEzuA',
-  },
-  {
-    id: 7,
-    size: 'sm',
-    tone: 'mint',
-    kind: 'link',
-    coverId: 2,
-    coverFit: 'contain',
-    coverType: 'jpg',
-    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
-  },
-  {
-    id: 8,
-    size: 'md',
-    tone: 'scarlet',
-    kind: 'link',
-    coverId: 2,
-    coverFit: 'contain',
-    coverType: 'jpg',
-    href: 'https://mp.weixin.qq.com/s/LCKoqxfp9mpPT3okMPdcCQ',
-  },
-]
-
-const hotspotSphereRef = ref(null)
-const hotspotCards = ref([])
 const activePopupCard = ref(null)
 const popupPlayerRef = ref(null)
 const wasBgmPlaying = ref(false)
-
-const RADIUS = 210
-const VERTICAL_RADIUS = 230
-const FOCAL_LENGTH = 760
-const BASE_SPEED_Y = 0.0022
-const BASE_SPEED_X = 0.0006
-
-let animationId = 0
-let speedX = BASE_SPEED_X
-let speedY = BASE_SPEED_Y
-let isDragging = false
-let lastX = 0
-let lastY = 0
-
-const getPoint = (event) => (event.touches ? event.touches[0] : event)
-
-const initCards = () => {
-  const len = hotspotSeedCards.length
-  const phi = Math.PI * (3 - Math.sqrt(5))
-
-  hotspotCards.value = hotspotSeedCards.map((item, i) => {
-    const y = 1 - (i / (len - 1)) * 2
-    const radiusAtY = Math.sqrt(1 - y * y)
-    const theta = phi * i
-
-    const x = Math.cos(theta) * radiusAtY * RADIUS
-    const z = Math.sin(theta) * radiusAtY * RADIUS
-    const yPos = y * VERTICAL_RADIUS
-
-    const thumbStyle = {
-      objectFit: item.coverFit || 'cover',
-      width: toCssSize(item.coverWidth) || undefined,
-      height: toCssSize(item.coverHeight) || undefined,
-    }
-
-    return {
-      ...item,
-      thumb: getCardThumb(item.coverId ?? item.id, item.coverType),
-      thumbStyle,
-      url: item.kind === 'video' ? getCardVideo(item.videoId ?? item.id) : '',
-      x,
-      y: yPos,
-      z,
-      nodeStyle: {},
-    }
-  })
-}
-
-const animateCards = () => {
-  if (!isDragging) {
-    speedY = speedY * 0.98
-    if (Math.abs(speedY) < BASE_SPEED_Y) speedY = Math.sign(speedY || 1) * BASE_SPEED_Y
-    speedX = speedX * 0.96
-  }
-
-  const sx = Math.sin(speedX)
-  const cx = Math.cos(speedX)
-  const sy = Math.sin(speedY)
-  const cy = Math.cos(speedY)
-
-  hotspotCards.value.forEach((item) => {
-    const y1 = item.y * cx - item.z * sx
-    const z1 = item.z * cx + item.y * sx
-    const x1 = item.x * cy - z1 * sy
-    const z2 = z1 * cy + item.x * sy
-
-    item.x = x1
-    item.y = y1
-    item.z = z2
-
-    const scale = FOCAL_LENGTH / (FOCAL_LENGTH - z2)
-    const alpha = (scale - 0.55) / 0.55
-    const opacity = Math.max(0.45, Math.min(1, alpha))
-
-    item.nodeStyle = {
-      transform: `translate3d(${x1}px, ${y1}px, 0) scale(${scale})`,
-      opacity,
-      zIndex: Math.round(300 + z2),
-      filter: `brightness(${0.78 + opacity * 0.25})`,
-    }
-  })
-
-  animationId = requestAnimationFrame(animateCards)
-}
-
-const onPointerStart = (event) => {
-  isDragging = true
-  const point = getPoint(event)
-  lastX = point.clientX
-  lastY = point.clientY
-  speedX = 0
-  speedY = 0
-}
-
-const onPointerMove = (event) => {
-  if (!isDragging) return
-
-  const point = getPoint(event)
-  const deltaX = point.clientX - lastX
-  const deltaY = point.clientY - lastY
-
-  speedY = deltaX * 0.0042
-  speedX = -deltaY * 0.0024
-  lastX = point.clientX
-  lastY = point.clientY
-
-  if (event.cancelable) event.preventDefault()
-}
-
-const onPointerEnd = () => {
-  isDragging = false
-}
 
 const openExternal = (href) => {
   if (!href) return
@@ -335,35 +118,7 @@ const closePopup = () => {
   }
 }
 
-onMounted(() => {
-  initCards()
-  animationId = requestAnimationFrame(animateCards)
-
-  const sphere = hotspotSphereRef.value
-  if (sphere) {
-    sphere.addEventListener('mousedown', onPointerStart)
-    sphere.addEventListener('touchstart', onPointerStart, { passive: true })
-  }
-
-  window.addEventListener('mousemove', onPointerMove)
-  window.addEventListener('touchmove', onPointerMove, { passive: false })
-  window.addEventListener('mouseup', onPointerEnd)
-  window.addEventListener('touchend', onPointerEnd)
-})
-
 onUnmounted(() => {
-  if (animationId) cancelAnimationFrame(animationId)
-
-  const sphere = hotspotSphereRef.value
-  if (sphere) {
-    sphere.removeEventListener('mousedown', onPointerStart)
-    sphere.removeEventListener('touchstart', onPointerStart)
-  }
-
-  window.removeEventListener('mousemove', onPointerMove)
-  window.removeEventListener('touchmove', onPointerMove)
-  window.removeEventListener('mouseup', onPointerEnd)
-  window.removeEventListener('touchend', onPointerEnd)
   document.body.style.overflow = ''
 
   if (activePopupCard.value && wasBgmPlaying.value) {
@@ -374,7 +129,6 @@ onUnmounted(() => {
   }
 })
 </script>
-
 <template>
   <div class="page">
     <main class="hotspot-page" :style="{ backgroundImage: `url(${bgImage})` }">
@@ -413,7 +167,7 @@ onUnmounted(() => {
             <button
               type="button"
               class="video-layer__close"
-              aria-label="关闭视频"
+              aria-label="鍏抽棴瑙嗛"
               @click="closePopup"
             ></button>
             <div v-if="activePopupCard.kind === 'video'" class="video-layer__content">
@@ -436,7 +190,7 @@ onUnmounted(() => {
                 class="link-layer__open"
                 @click="openExternal(activePopupCard.href)"
               >
-                打开链接
+                鎵撳紑閾炬帴
               </button>
             </div>
           </div>
@@ -529,7 +283,7 @@ $tower-layouts: (
   position: relative;
   height: 100%;
   padding-bottom: calc(95px + env(safe-area-inset-bottom));
-  --hotspot-scale: 1.15;
+  --hotspot-scale: 2;
   box-sizing: border-box;
   background-repeat: no-repeat;
   background-position: center center;
@@ -538,11 +292,12 @@ $tower-layouts: (
 
 .hotspot-canvas {
   position: relative;
-  width: min(100%, calc(100vh * 16 / 9));
-  max-width: 1320px;
+  width: 100%;
   height: 100%;
   margin: 0 auto;
   overflow: hidden;
+  padding-inline: clamp(12px, 2vw, 28px);
+  box-sizing: border-box;
 }
 
 .hotspot-sphere {
@@ -550,7 +305,7 @@ $tower-layouts: (
   left: 0;
   right: 0;
   top: 36px;
-  height: min(72vh, 760px);
+  height: min(72vh, 650px);
   z-index: 4;
   perspective: 900px;
   touch-action: none;
@@ -597,7 +352,7 @@ $tower-layouts: (
 
   &__thumb {
     position: absolute;
-    inset: 4px;
+    inset: 12px;
     border-radius: 4px;
     background-size: 100% 100%;
     background-position: center;
@@ -770,6 +525,3 @@ $tower-layouts: (
   letter-spacing: 0.5px;
 }
 </style>
-
-
-
