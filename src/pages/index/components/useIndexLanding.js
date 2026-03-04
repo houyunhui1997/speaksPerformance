@@ -18,9 +18,9 @@ import fpText from '@/assets/footprint/h5/text1.png'
 import fpJuxing from '@/assets/footprint/h5/juxing.png'
 import fpDidian from '@/assets/footprint/h5/didian.png'
 // Hotspot
-import hsBg from '@/assets/hotspot/hotspot_bg.png'
-import hsVideoThumb from '@/assets/hotspot/video.png'
-import hsVideoBg from '@/assets/hotspot/video-bg.png'
+import hsBg from '@/assets/hotspot/h5/hotspot_bg.png'
+import hsVideoThumb from '@/assets/hotspot/h5/video.png'
+import hsVideoBg from '@/assets/hotspot/h5/video-bg.png'
 // Topic
 import tpBg from '@/assets/topic/h5/topic-bg.png'
 import tpCardMd from '@/assets/topic/h5/topic-card-md.png'
