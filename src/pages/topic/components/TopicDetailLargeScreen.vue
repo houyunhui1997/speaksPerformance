@@ -16,14 +16,14 @@ const largeBubbleConfigs = [
     img: webDialogBottomRight,
     padding: '150px 46px 96px 38px',
     tagStyle: { top: '42px', bottom: 'none', left: '36px', right: 'none', textAlign: 'right' },
-    minHeight: '600px',
+    minHeight: '500px',
   },
   {
     type: 'left-bottom',
     img: webDialogRight,
     padding: '140px 122px 42px 38px',
     tagStyle: { top: '32px', left: '40px' },
-    minHeight: '400px',
+    minHeight: '440px',
   },
   {
     type: 'right-top',
@@ -67,9 +67,9 @@ onBeforeUnmount(() => {
 const getLargeCardBoxStyle = (index, total) => {
   const fullLayouts = [
     { top: '32%', left: '39%', width: '40%', zIndex: 3 },
-    { top: '12%', left: '27%', width: '27%', zIndex: 2 },
+    { top: '8%', left: '30%', width: '27%', zIndex: 2 },
     { top: '6%', right: '0%', width: '34%', zIndex: 2 },
-    { top: '24%', left: '1%', width: '35%', zIndex: 4 },
+    { top: '34%', left: '1%', width: '32%', zIndex: 4 },
   ]
   return fullLayouts[index] || fullLayouts[fullLayouts.length - 1]
 }
@@ -332,7 +332,7 @@ const largeDisplayList = computed(() => {
 
 .topic-detail__icon {
   position: absolute;
-  top: 11.4%;
+  top: 12%;
   left: 2.6%;
   width: 11%;
   z-index: 15;

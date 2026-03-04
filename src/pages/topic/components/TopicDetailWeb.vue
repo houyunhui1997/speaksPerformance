@@ -17,7 +17,7 @@ const webBubbleConfigs = [
     padding: '70px 30px 70px 24px',
     tagStyle: { top: '30px', bottom: 'none', left: '24px', right: 'none', textAlign: 'right' },
     boxWidth: 'min(64vw, 780px)',
-    minHeight: '340px',
+    minHeight: '280px',
   },
   {
     type: 'left-bottom',
@@ -52,9 +52,9 @@ const { activeYear, topicYearTabs, displayList, setYear, handleCardClick } = use
 const getWebCardBoxStyle = (index, total) => {
   const fullLayouts = [
     { top: '30%', left: '40%', width: 'min(33vw, 620px)', zIndex: 3 },
-    { top: '10%', left: '28%', width: 'min(26vw, 560px)', zIndex: 2 },
-    { top: '10%', right: '0%', width: 'min(30vw, 560px)', zIndex: 2 },
-    { top: '20%', left: '0%', width: 'min(30vw, 680px)', zIndex: 4 },
+    { top: '10%', left: '30%', width: 'min(26vw, 560px)', zIndex: 2 },
+    { top: '8%', right: '0%', width: 'min(30vw, 560px)', zIndex: 2 },
+    { top: '32%', left: '0%', width: 'min(30vw, 680px)', zIndex: 4 },
   ]
   return fullLayouts[index] || fullLayouts[fullLayouts.length - 1]
 }

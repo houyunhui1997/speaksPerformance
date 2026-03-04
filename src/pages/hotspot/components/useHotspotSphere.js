@@ -229,10 +229,9 @@ export function useHotspotSphere(options = {}) {
 
     const point = getPoint(event)
     const deltaX = point.clientX - lastX
-    const deltaY = point.clientY - lastY
 
     speedY = deltaX * dragSpeedYFactor
-    speedX = -deltaY * dragSpeedXFactor
+    speedX = 0
     lastX = point.clientX
     lastY = point.clientY
 
