@@ -3548,7 +3548,7 @@ export const topicAuthorList = [
   {
     id: 'author-125',
     author: '李君',
-    title: '只此青绿 “蜀”你最美】全国人大代表李君：建设生态美丽宜居岫云村 推动乡村生态振兴',
+    title: '【只此青绿 “蜀”你最美】全国人大代表李君：建设生态美丽宜居岫云村 推动乡村生态振兴',
     link: 'https://scnews.newssc.org/system/20220303/001246027.html',
     year: '2022',
   },

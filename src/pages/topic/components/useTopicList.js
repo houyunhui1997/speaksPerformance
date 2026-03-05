@@ -32,7 +32,6 @@ export function useTopicList(options = {}) {
 
   const activeYear = computed(() => String(route.query.year || defaultYear))
   const activeTopicKey = computed(() => String(route.query.topic || '').trim())
-  const cityName = computed(() => String(route.query.cityName || '').trim())
 
   const displayList = computed(() => {
     const yearList = topicListByYear[activeYear.value] || topicListByYear[defaultYear] || []
@@ -60,7 +59,7 @@ export function useTopicList(options = {}) {
 
   const goAuthorDetail = (card) => {
     const author = normalizeAuthorName(card?.author)
-    if (!author) return
+    if (!author || author == '全团') return
 
     router.push({
       name: authorRouteName,
@@ -122,7 +121,6 @@ export function useTopicList(options = {}) {
 
   return {
     listWrapperRef,
-    cityName,
     scrollList,
     handleCardLink,
     goAuthorDetail,

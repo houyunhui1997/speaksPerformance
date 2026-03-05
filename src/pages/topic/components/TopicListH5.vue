@@ -23,7 +23,6 @@ const getDialogBg = (index) => (index % 2 === 0 ? dialogRight : dialogLeft)
 <template>
   <div class="page">
     <main class="topic-list" :style="{ backgroundImage: `url(${bgImage})` }">
-      <div v-if="cityName" class="city-header">当前城市：{{ cityName }}</div>
       <section
         ref="listWrapperRef"
         class="list-wrapper"
