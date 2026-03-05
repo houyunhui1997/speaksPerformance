@@ -50,4 +50,17 @@ const router = createRouter({
   ],
 })
 
+let isFirstLoad = true
+
+router.beforeEach((to, from, next) => {
+  if (isFirstLoad) {
+    isFirstLoad = false
+    if (to.path !== '/' && to.path !== '/index') {
+      next('/')
+      return
+    }
+  }
+  next()
+})
+
 export default router

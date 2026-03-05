@@ -1,5 +1,6 @@
 <script setup>
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue'
+import TopicBackButton from './components/TopicBackButton.vue'
 
 const TopicListH5 = defineAsyncComponent(() => import('./components/TopicListH5.vue'))
 const TopicListWeb = defineAsyncComponent(() => import('./components/TopicListWeb.vue'))
@@ -80,4 +81,5 @@ onBeforeUnmount(() => {
 
 <template>
   <component :is="CurrentComponent" />
+  <TopicBackButton />
 </template>

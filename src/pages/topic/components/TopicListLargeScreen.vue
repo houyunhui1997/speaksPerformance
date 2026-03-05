@@ -81,7 +81,7 @@ const getDialogBg = (index) => (index % 2 === 0 ? dialogRight : dialogLeft)
 
 .list-wrapper {
   position: absolute;
-  top: 124px;
+  top: 180px;
   left: 78px;
   right: 78px;
   bottom: 210px;

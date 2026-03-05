@@ -662,7 +662,7 @@ onBeforeUnmount(() => {
 
 .fonttext {
   font-size: clamp(44px, 2vw, 24px);
-  line-height: 22px;
+  line-height: 44px;
   color: #fff;
 }
 
