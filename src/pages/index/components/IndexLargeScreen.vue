@@ -190,7 +190,7 @@ const {
 .skip-btn {
   position: absolute;
   right: calc(24px + env(safe-area-inset-right));
-  bottom: calc(24px + env(safe-area-inset-bottom));
+  top: calc(24px + env(safe-area-inset-top));
   z-index: 1000;
   padding: 0;
   border: 0;
