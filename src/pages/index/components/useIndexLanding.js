@@ -5,7 +5,6 @@ import titleImage from '@/assets/homepage/web/title.png'
 import enterButtonImage from '@/assets/homepage/h5/button.png'
 import logo_01 from '@/assets/homepage/h5/logo1.png'
 import logo_02 from '@/assets/homepage/h5/logo2.png'
-import logo_03 from '@/assets/homepage/h5/logo3.png'
 import year_2026 from '@/assets/homepage/h5/2026.png'
 import openingVideo from '@/assets/video/index.mp4'
 import skipBtn from '@/assets/homepage/h5/skip.png'
@@ -179,7 +178,6 @@ export function useIndexLanding() {
     enterButtonImage,
     logo_01,
     logo_02,
-    logo_03,
     year_2026,
     openingVideo,
     skipBtn,
