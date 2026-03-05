@@ -105,16 +105,16 @@ export const hotspotSeedCards = [
     coverType: 'png',
     href: 'https://article.xuexi.cn/articles/index.html?art_id=17937964416357545429&item_id=17937964416357545429&cdn=https%3A%2F%2Fregion-sichuan-resource&study_style_id=feeds_opaque&study_comment_enable=0&study_comment_read_enable=0&favor_type=0&source=share&share_to=wx_feed',
   },
-  {
-    id: 8,
-    size: 'md',
-    tone: 'scarlet',
-    kind: 'link',
-    coverId: 8,
-    coverFit: 'contain',
-    coverType: 'jpg',
-    href: '',
-  },
+  // {
+  //   id: 8,
+  //   size: 'md',
+  //   tone: 'scarlet',
+  //   kind: 'link',
+  //   coverId: 8,
+  //   coverFit: 'contain',
+  //   coverType: 'jpg',
+  //   href: '',
+  // },
 ]
 
 export function useHotspotSphere(options = {}) {

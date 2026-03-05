@@ -347,13 +347,19 @@ $tower-layouts: (
 
   &__thumb {
     position: absolute;
-    inset: 4px;
+    inset: 8px;
     border-radius: 4px;
     background-size: 100% 100%;
     background-position: center;
     overflow: hidden;
   }
+  &--xs &__thumb {
+    inset: 4px;
+  }
 
+  &--sm &__thumb {
+    inset: 5px;
+  }
   &__video {
     width: 100%;
     height: 100%;
