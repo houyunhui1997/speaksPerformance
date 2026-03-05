@@ -3,7 +3,7 @@ export const topicSphereList = [
   { key: 'livelihood', label: '民生', size: 'sm', num: 229 },
   { key: 'four', label: '四个发力', size: 'xl', num: 236 },
   { key: 'law', label: '法治四川', size: 'md', num: 75 },
-  { key: 'plan', label: '发展规划', size: 'md', num: 82 },
+  { key: 'plan', label: '发展规划', size: 'md', num: 99 },
   { key: 'safety', label: '安全发展', size: 'sm', num: 6 },
   { key: 'traffic', label: '交通', size: 'lg', num: 57 },
   { key: 'chengyu', label: '成渝地区双城经济圈', size: 'wide', num: 61 },
