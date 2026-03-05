@@ -163,11 +163,10 @@ const {
 
 .opening-video__player {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(100vw, calc(100vh * 9 / 16));
-  height: min(100vh, calc(100vw * 16 / 9));
-  transform: translate(-50%, -50%);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .skip-btn {
