@@ -22,6 +22,8 @@ export function useTopicSphere(options = {}) {
     dragThreshold = 8,
     detailRouteName = 'topicDetail',
     detailQuery = { year: '2025' },
+    enableBrightness = true,
+    use3dTransform = true,
   } = options
 
   const getNumericOption = (value, fallback) => {
@@ -87,12 +89,23 @@ export function useTopicSphere(options = {}) {
       const opacity = Math.max(0.3, Math.min(1, alpha))
       const zIndex = Math.round(100 - tag.z)
 
-      tag.style = {
-        transform: `translate3d(${tag.x}px, ${tag.y}px, 0) scale(${scale})`,
+      const translateX = use3dTransform ? tag.x : Math.round(tag.x * 10) / 10
+      const translateY = use3dTransform ? tag.y : Math.round(tag.y * 10) / 10
+      const translate = use3dTransform
+        ? `translate3d(${translateX}px, ${translateY}px, 0)`
+        : `translate(${translateX}px, ${translateY}px)`
+
+      const nextStyle = {
+        transform: `${translate} scale(${scale})`,
         opacity,
         zIndex,
-        filter: `brightness(${0.7 + opacity * 0.3})`,
       }
+
+      if (enableBrightness) {
+        nextStyle.filter = `brightness(${0.7 + opacity * 0.3})`
+      }
+
+      tag.style = nextStyle
     })
 
     animationId = requestAnimationFrame(animate)

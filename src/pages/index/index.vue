@@ -3,11 +3,13 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 
 
 const IndexH5 = defineAsyncComponent(() => import('./components/IndexH5.vue'))
 const IndexWeb = defineAsyncComponent(() => import('./components/IndexWeb.vue'))
+const IndexWebPortrait = defineAsyncComponent(() => import('./components/IndexWebPortrait.vue'))
 const IndexLargeScreen = defineAsyncComponent(() => import('./components/IndexLargeScreen.vue'))
 
 const modeComponentMap = {
   h5: IndexH5,
   web: IndexWeb,
+  webPortrait: IndexWebPortrait,
   largeScreen: IndexLargeScreen,
 }
 
@@ -15,6 +17,7 @@ const screenMode = ref('h5')
 
 const normalizeMode = (mode) => {
   if (mode === 'fhd') return 'web'
+  if (mode === 'web-portrait') return 'webPortrait'
   if (mode === 'screen55') return 'largeScreen'
   return mode
 }
@@ -22,7 +25,7 @@ const normalizeMode = (mode) => {
 const getForcedMode = () => {
   const rawMode = new URLSearchParams(window.location.search).get('screenMode')
   const mode = normalizeMode(rawMode)
-  if (mode === 'h5' || mode === 'web' || mode === 'largeScreen') {
+  if (mode === 'h5' || mode === 'web' || mode === 'webPortrait' || mode === 'largeScreen') {
     return mode
   }
   return null
@@ -35,10 +38,16 @@ const detectModeByResolution = () => {
   const width = window.innerWidth
   const height = window.innerHeight
   const shortSide = Math.min(width, height)
+  const isPortrait = height > width
 
   // H5: 手机和平板
   if (shortSide <= 900) {
     return 'h5'
+  }
+
+  // 竖屏大分辨率使用 Web 竖版组件
+  if (isPortrait) {
+    return 'webPortrait'
   }
 
   // 55寸大屏测试规则：2K/4K 及以上分辨率
