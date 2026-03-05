@@ -58,8 +58,9 @@ export function useTopicList(options = {}) {
   }
 
   const goAuthorDetail = (card) => {
+    const authorBlacklist = ['全团', '四川全团建议', '全团建议']
     const author = normalizeAuthorName(card?.author)
-    if (!author || author == '全团') return
+    if (!author || authorBlacklist.includes(author)) return
 
     router.push({
       name: authorRouteName,

@@ -710,7 +710,7 @@ export const topicListByYear = {
     {
       id: '24-four-051',
       title: '关于将成都航空枢纽定位为全方位门户复合型国际航空枢纽的建议',
-      author: '黄强',
+      author: '',
       link: '',
       topicKey: 'four',
     },
@@ -1575,7 +1575,7 @@ export const topicListByYear = {
     {
       id: '24-plan-009',
       title: '关于将阿坝州第三机场纳入《全国民用运输机场布局规划》的建议',
-      author: '格西王母',
+      author: '格西王姆',
       link: '',
       topicKey: 'plan',
     },
@@ -1715,7 +1715,7 @@ export const topicListByYear = {
     {
       id: '24-plan-029',
       title: '关于加强数字政府应用和场景建设加快构建以信用为依托的经济治理体系的建议',
-      author: '施小琳',
+      author: '',
       link: '',
       topicKey: 'plan',
     },
@@ -2849,13 +2849,13 @@ export const topicAuthorList = [
     link: 'https://scnews.newssc.org/system/20250308/001511387.html',
     year: '2025',
   },
-  {
-    id: 'author-025',
-    author: '尚丽平',
-    title: '四川省人民政府发布一批人事任免 涉厅级领导职务',
-    link: 'https://scnews.newssc.org/system/20251111/001569373.html',
-    year: '2025',
-  },
+  // {
+  //   id: 'author-025',
+  //   author: '尚丽平',
+  //   title: '四川省人民政府发布一批人事任免 涉厅级领导职务',
+  //   link: 'https://scnews.newssc.org/system/20251111/001569373.html',
+  //   year: '2025',
+  // },
   {
     id: 'author-026',
     author: '王树江',
@@ -3862,7 +3862,7 @@ export const topicAuthorList = [
   },
   {
     id: 'author-170',
-    author: '格西王母',
+    author: '格西王姆',
     title: '全国人大代表格西王姆：守望幸福“夕阳红”',
     link: 'http://pic.people.com.cn/n1/2025/0227/c1016-40427524.html',
     year: '2025',
@@ -3972,14 +3972,14 @@ export const topicAuthorList = [
     link: 'https://sichuan.scol.com.cn/xwtg/202403/82487513.html',
     year: '2024',
   },
-  {
-    id: 'author-186',
-    author: '施小琳',
-    title:
-      '施小琳在调研企业服务平台推进情况并召开座谈会时强调：提升服务平台能级质效、赋能企业高质量发展，为科技创新和现代产业发展向新向优注入持续动能',
-    link: 'https://scnews.newssc.org/system/20260224/001593005.html',
-    year: '2026',
-  },
+  // {
+  //   id: 'author-186',
+  //   author: '施小琳',
+  //   title:
+  //     '施小琳在调研企业服务平台推进情况并召开座谈会时强调：提升服务平台能级质效、赋能企业高质量发展，为科技创新和现代产业发展向新向优注入持续动能',
+  //   link: 'https://scnews.newssc.org/system/20260224/001593005.html',
+  //   year: '2026',
+  // },
   {
     id: 'author-187',
     author: '汪其德',
