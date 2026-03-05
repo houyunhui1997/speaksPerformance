@@ -63,7 +63,22 @@ const handleTabClick = (tab) => {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-@media (min-width: 900px) {
+@media (orientation: portrait) {
+  .tabbar {
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: clamp(50px, 13.333vw, 300px);
+    bottom: clamp(12px, 2.4vw, 72px);
+    transform: none;
+  }
+
+  .tabbar__icon {
+    max-width: none;
+  }
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
   .tabbar {
     left: 50%;
     right: auto;
@@ -72,7 +87,7 @@ const handleTabClick = (tab) => {
   }
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1600px) and (orientation: landscape) {
   .tabbar {
     width: 55%;
   }
